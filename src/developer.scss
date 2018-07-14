@@ -1,0 +1,9 @@
+.disabled.field.dev-opacity{
+    opacity: 0.8 !important;
+  }
+  .disabled.field.dev-opacity > label{
+    opacity: 0.8 !important;
+  }
+  .disabled.field.dev-opacity .ui.disabled.input, .ui.input:not(.disabled) input[disabled]{
+    opacity: 0.8 !important;
+  }

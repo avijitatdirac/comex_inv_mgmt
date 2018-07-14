@@ -1,0 +1,105 @@
+/* #header {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  height: 100px;
+  color: #fff;
+  font-size: 36px;
+  font-family: "Roboto", sans-serif;
+  font-variant: small-caps;
+  background-color: var(--primarycolor);
+} */
+
+#header {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  height: 100px;
+  color: #fff;
+  font-size: 180%;
+  font-family: "Roboto", sans-serif;
+  font-variant: small-caps;
+  background-color: var(--primarycolor);
+}
+
+
+
+
+/* .ui.fixed.sticky + p {
+  margin-top: 39px;
+} */
+
+/* .outer-container */
+.page h1 {
+  text-align: center;
+  color: gray;
+  width: auto;
+  height: auto;
+  
+  margin-left: auto;
+  margin-right: auto;
+}
+
+h1 {
+  text-align: center;
+  color: teal;
+  width: auto;
+  height: auto;
+  
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#header div:last-child {
+  visibility: hidden;
+}
+
+#header div:nth-child(2) {
+  height: 50px;
+}
+
+#header > div > img {
+  width: 80%;
+  height: 80%;
+  display: inline-block;
+  animation: tilt linear 5s infinite alternate;
+}
+
+/*
+
+#header > div > img {
+  width: 200px;
+  height: 40px;
+  display: inline-block;
+  animation: tilt linear 5s infinite alternate;
+}
+*/
+
+@keyframes tilt {
+  from {
+    transform: rotateZ(-3deg);
+  }
+  to {
+    transform: rotateZ(3deg);
+  }
+}
+
+#page-wrap {
+  padding-left: 10px;
+  padding-top: 10px;
+}
+
+.page {
+  width: 80%;
+  margin: 0 auto;
+}
+/* .mainDiv {
+  border-block-start: 20px;
+  margin-block-end: 20px;
+  margin-right: auto;
+  margin-left: auto;
+  width: 90%;
+} */
+.opacity{
+  opacity: 67.45;
+}

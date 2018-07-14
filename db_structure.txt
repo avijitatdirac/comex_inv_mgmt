@@ -1,0 +1,138 @@
+asset:
+    id                          
+    asset_type_id              
+    serial_no                  
+    purchase_date              
+    purchase_price             
+    supplier_id                
+    warehouse_location_id      
+    showroom_id                
+    procurement_date           
+    status                     
+    create_timestamp           
+    update_timestamp            
+    part_code                  
+    external_serial_number     
+    internal_serial_number     
+    make                       
+    make_date                  
+    inventory_source           
+    transfer_order_no          
+
+assset_details:
+    id
+    asset_id
+    attribute_id
+    attribute_value
+    create_timestamp
+    update_timestamp
+
+asset_config:
+    id
+    asset_id
+    child_asset_id
+    create_timestamp
+    update_timestamp
+    parent_asset_id
+    status
+
+asset_types:
+    id
+    type_name
+    is_active
+    create_timestamp
+    update_timestamp
+
+asset_type_attributes:
+    id
+    asset_type_id
+    attr_name
+    is_modifiable
+    is_mandatory
+    is_active
+    create_timestamp
+    update_timestamp
+
+branch:
+    id
+    name
+    location
+    contact_no
+    contact_person
+    email
+    address
+    address1
+    address2
+    city
+    state
+    pincode
+    status
+    create_timestamp
+    update_timestamp
+
+customer:
+    Customer_Id
+    CName
+    Contact_No
+    Contact_person
+    Email
+    Address
+    Address1
+    Address2
+    City
+    State
+    Pincode
+    created_date
+    updated_date
+
+customer_financial:
+    Account_Id
+    Customer_Detail_Id
+    Account_Number
+    IFSC_Code
+    Bank_Name
+    Account_Name
+    GST_Details
+    HSN_Code
+    SAC_Code
+    created_date
+    updated_date
+
+customer_location_detail:    
+    Location_Detail_Id
+    Customer_Id
+    Location
+    Contact_No
+    Contact_person
+    Email
+    Address
+    Address1
+    Address2
+    City
+    State
+    Pincode
+    Bill_To_Address
+    Bill_To_Address1
+    Bill_To_Address2
+    Ship_To_Address
+    Ship_To_Address1
+    Ship_To_Address2
+    created_date
+    updated_date
+
+order_master:
+    ID
+    order_date
+    customer_id
+    total_amount
+    rental_period
+
+order_detail:
+    id
+    order_id
+    asset_id
+    serial_number
+    rental_period
+    unit_price
+    gst_value
+    total_value

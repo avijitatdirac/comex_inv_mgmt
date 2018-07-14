@@ -1,0 +1,44 @@
+{
+  "name": "inventory-management",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "npm": "5.3.0",
+    "node": "8.5.0"
+  },
+  "proxy": "https://polar-dusk-36385.herokuapp.com",
+  "dependencies": {
+    "history": "^4.6.3",
+    "moment": "^2.21.0",
+    "mysql": "^2.15.0",
+    "react": "^16.2.0",
+    "react-autosuggest": "^9.3.4",
+    "react-burger-menu": "^2.2.3",
+    "react-datepicker": "^1.2.2",
+    "react-dom": "^16.2.0",
+    "react-loadable": "^5.4.0",
+    "react-moment": "^0.7.0",
+    "react-native-simple-radio-button": "^2.7.1",
+    "react-redux": "^5.0.5",
+    "react-router-dom": "^4.2.2",
+    "react-scripts": "1.1.1",
+    "react-toastify": "^4.1.0",
+    "redux": "^3.7.2",
+    "redux-logger": "^3.0.6",
+    "redux-thunk": "^2.2.0",
+    "semantic-ui-css": "^2.2.14",
+    "semantic-ui-react": "^0.78.2"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject"
+  },
+  "devDependencies": {
+    "enzyme": "^3.3.0",
+    "enzyme-adapter-react-16": "^1.1.1",
+    "nodemon": "^1.15.1",
+    "react-to-print": "^1.0.14"
+  }
+}
