@@ -59,30 +59,51 @@ class Login extends Component {
 			isValid = false;
 		}
 		if (isValid) {
-			if (username == 'admin@yopmail.com' && password == '12345678') {
-				localStorage.setItem(
-					'user',
-					JSON.stringify({
-						username: 'admin@yopmail.com',
-						username: 'admin',
-						role: 'admin',
-						branch: 'Kolkata',
-					})
-				);
-				localStorage.setItem('token', 'afsjbgdkghdfhfhfhjflhjfjsbfdhgkdghdghfkgffhnbgvgkf');
-				history.push('/dashboard');
-				this.setState({ successText: validation.messages().loginSuccess + 'kalkk' });
-			} else if (username == 'user@yopmail.com' && password == '87654321') {
-				localStorage.setItem(
-					'user',
-					JSON.stringify({ username: 'user@yopmail.com', username: 'sanjeet', role: 'user', branch: 'Pune' })
-				);
-				localStorage.setItem('token', 'trerergtbfvfkdhbdfnvksfhksfhsfnsfskfsfjs');
-				history.push('/dashboard');
-				this.setState({ successText: validation.messages().loginSuccess });
-			} else {
-				this.setState({ passwordError: true, passwordErrorText: validation.messages().invalidUser });
-			}
+			fetch('/check_login', {
+				method: 'POST',
+				credentials: 'include',
+				headers: {
+					'Accept': 'application/json',
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ email: username, password })
+			}).then(r => r.json())
+				.then(data => {
+					if (data.is_success) {
+						localStorage.setItem('user', JSON.stringify(data))
+						localStorage.setItem('token', 'afsjbgdkghdfhfhfhjflhjfjsbfdhgkdghdghfkgffhnbgvgkf');
+						history.push('/dashboard');
+						this.setState({ successText: validation.messages().loginSuccess });
+					} else {
+						this.setState({ passwordError: true, passwordErrorText: validation.messages().invalidUser });
+					}
+				})
+
+
+			// if (username == 'admin@yopmail.com' && password == '12345678') {
+			// 	localStorage.setItem(
+			// 		'user',
+			// 		JSON.stringify({
+			// 			username: 'admin@yopmail.com',
+			// 			username: 'admin',
+			// 			role: 'admin',
+			// 			branch: 'Kolkata',
+			// 		})
+			// 	);
+			// 	localStorage.setItem('token', 'afsjbgdkghdfhfhfhjflhjfjsbfdhgkdghdghfkgffhnbgvgkf');
+			// 	history.push('/dashboard');
+			// 	this.setState({ successText: validation.messages().loginSuccess + 'kalkk' });
+			// } else if (username == 'user@yopmail.com' && password == '87654321') {
+			// 	localStorage.setItem(
+			// 		'user',
+			// 		JSON.stringify({ username: 'user@yopmail.com', username: 'sanjeet', role: 'user', branch: 'Pune' })
+			// 	);
+			// 	localStorage.setItem('token', 'trerergtbfvfkdhbdfnvksfhksfhsfnsfskfsfjs');
+			// 	history.push('/dashboard');
+			// 	this.setState({ successText: validation.messages().loginSuccess });
+			// } else {
+			// 	this.setState({ passwordError: true, passwordErrorText: validation.messages().invalidUser });
+			// }
 		}
 	}
 

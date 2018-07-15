@@ -11,3 +11,6 @@ ReactDOM.render(
 	document.getElementById('root')
 );
 
+
+
+// "proxy": "https://polar-dusk-36385.herokuapp.com",
