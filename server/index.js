@@ -34,6 +34,9 @@ const auth = require("./authentication");
 const login = require("./login");
 const cust = require("./customer");
 const asset = require("./asset");
+const assetConfig = require("./config");
+const order = require("./order");
+const challan = require("./challan");
 
 /*
 * serves the index.html file without any session authentication 
@@ -67,6 +70,9 @@ app.use(auth);
  */
 app.use("/cust", cust);
 app.use("/asset", asset);
+app.use("/config", assetConfig);
+app.use("/order", order);
+app.use("/challan", challan);
 
 // app.get(`/get_customer_roles`, (req, res) => {
 //   var qrGetRoles = "SELECT * FROM  customer_role";
@@ -116,30 +122,30 @@ app.use("/asset", asset);
 //       });
 //   });
 // });
-app.get(`/remove_asset_value`, (req, res) => {
-  var asset_id = req.query.asset_id;
-  var attribute_id = req.query.attribute_id;
-  var attribute_value = req.query.attribute_value;
-  var qry =
-    "update asset_details set attribute_value=concat(?,' ','removed') where asset_details.asset_id=? and asset_details.attribute_id=?";
-  connection.query(
-    qry,
-    [attribute_value, asset_id, attribute_id],
-    (error, results, fields) => {
-      if (error) {
-        res.status(501).json({
-          isSuccess: true,
-          error: error
-        });
-      } else {
-        res.status(200).json({
-          isError: false,
-          status: "success"
-        });
-      }
-    }
-  );
-});
+// app.get(`/remove_asset_value`, (req, res) => {
+//   var asset_id = req.query.asset_id;
+//   var attribute_id = req.query.attribute_id;
+//   var attribute_value = req.query.attribute_value;
+//   var qry =
+//     "update asset_details set attribute_value=concat(?,' ','removed') where asset_details.asset_id=? and asset_details.attribute_id=?";
+//   connection.query(
+//     qry,
+//     [attribute_value, asset_id, attribute_id],
+//     (error, results, fields) => {
+//       if (error) {
+//         res.status(501).json({
+//           isSuccess: true,
+//           error: error
+//         });
+//       } else {
+//         res.status(200).json({
+//           isError: false,
+//           status: "success"
+//         });
+//       }
+//     }
+//   );
+// });
 
 // app.get(`/get_asset_status_count`, (req, res) => {
 //   var qry1 =
@@ -203,55 +209,55 @@ app.get(`/remove_asset_value`, (req, res) => {
 //     });
 //   });
 // });
-app.get(`/get_all_modifiable_values`, (req, res) => {
-  var qry =
-    "select b.* from asset_types a,asset b where a.id=b.asset_type_id and a.type_name=?";
-  var x;
-  var type_name = req.query.type_name;
-  var qry1 =
-    "select d.asset_id,d.attribute_id,a.attr_name,d.attribute_value from asset_types_attributes a,asset_types b,asset c,asset_details d where b.id=a.asset_type_id and b.type_name=? and a.is_modifiable=1 and c.asset_type_id=b.id and d.asset_id=c.id and d.attribute_id=a.id order by d.asset_id,d.attribute_id";
+// app.get(`/get_all_modifiable_values`, (req, res) => {
+//   var qry =
+//     "select b.* from asset_types a,asset b where a.id=b.asset_type_id and a.type_name=?";
+//   var x;
+//   var type_name = req.query.type_name;
+//   var qry1 =
+//     "select d.asset_id,d.attribute_id,a.attr_name,d.attribute_value from asset_types_attributes a,asset_types b,asset c,asset_details d where b.id=a.asset_type_id and b.type_name=? and a.is_modifiable=1 and c.asset_type_id=b.id and d.asset_id=c.id and d.attribute_id=a.id order by d.asset_id,d.attribute_id";
 
-  connection.query(qry, [type_name], (error, results, fields) => {
-    if (error) {
-      res.status(200).json({
-        isSuccess: false,
-        error: error
-      });
-      return;
-    } else {
-      x = results;
-    }
-  });
-  connection.query(qry1, [type_name], (error, results, fields) => {
-    if (error) {
-      res.status(501).json({
-        isSuccess: error
-      });
-      return;
-    } else {
-      res.status(201).json({
-        isSuccess: true,
-        dyna: results,
-        static: x
-      });
-    }
-  });
-});
-app.get(`/change_status_on_return2`, (req, res) => {
-  var qry = "update asset set status=? where id=?";
+//   connection.query(qry, [type_name], (error, results, fields) => {
+//     if (error) {
+//       res.status(200).json({
+//         isSuccess: false,
+//         error: error
+//       });
+//       return;
+//     } else {
+//       x = results;
+//     }
+//   });
+//   connection.query(qry1, [type_name], (error, results, fields) => {
+//     if (error) {
+//       res.status(501).json({
+//         isSuccess: error
+//       });
+//       return;
+//     } else {
+//       res.status(201).json({
+//         isSuccess: true,
+//         dyna: results,
+//         static: x
+//       });
+//     }
+//   });
+// });
+// app.get(`/change_status_on_return2`, (req, res) => {
+//   var qry = "update asset set status=? where id=?";
 
-  var i;
-  var data = req.query.data;
-  var jsonData = JSON.parse(data);
-  for (i = 0; i < jsonData.length; i++) {
-    var status = jsonData[i].status;
-    var id = jsonData[i].id;
-    connection.query(qry, [status, id]);
-  }
-  res.status(200).json({
-    isSuccess: true
-  });
-});
+//   var i;
+//   var data = req.query.data;
+//   var jsonData = JSON.parse(data);
+//   for (i = 0; i < jsonData.length; i++) {
+//     var status = jsonData[i].status;
+//     var id = jsonData[i].id;
+//     connection.query(qry, [status, id]);
+//   }
+//   res.status(200).json({
+//     isSuccess: true
+//   });
+// });
 // app.get(`/get_asset_type_customer_name`, (req, res) => {
 //   var qry =
 //     "select distinct(d.CName), a.* from asset a,order_detail b,order_master c,customer d where a.asset_type_id=? and a.status=0 and a.id=b.asset_id and b.order_id=c.ID and d.Customer_Id=c.customer_id";
@@ -270,47 +276,47 @@ app.get(`/change_status_on_return2`, (req, res) => {
 //     }
 //   });
 // });
-app.get(`/change_config_status`, (req, res) => {
-  // console.log(req.query)
-  var id = req.query.id;
-  var qry = "update asset_config set status=0 where id=?";
-  connection.query(qry, [id], (error, results, fields) => {
-    if (error) {
-      res.status(501).json({
-        isSuccess: false,
-        error: error
-      });
-    } else {
-      res.status(200).json({
-        isSuccess: true
-      });
-    }
-  });
-});
-app.get(`/get_asset_config`, (req, res) => {
-  var qry1 =
-    "select b.*,a.serial_no from asset a,asset_config b where a.id=b.asset_id and b.status=1 order by b.id";
-  var qry2 =
-    "select a.serial_no from asset a,asset_config b where a.id=b.child_asset_id and b.status=1 order by b.id";
-  var x;
-  connection.query(qry1, (error, results, fields) => {
-    if (error) {
-      res.status(501).json({
-        isSuccess: false,
-        error: error
-      });
-      return;
-    } else {
-      x = results;
-      connection.query(qry2, (error, results, fields) => {
-        res.json({
-          asset_config_id: x,
-          asset_config_child: results
-        });
-      });
-    }
-  });
-});
+// app.get(`/change_config_status`, (req, res) => {
+//   // console.log(req.query)
+//   var id = req.query.id;
+//   var qry = "update asset_config set status=0 where id=?";
+//   connection.query(qry, [id], (error, results, fields) => {
+//     if (error) {
+//       res.status(501).json({
+//         isSuccess: false,
+//         error: error
+//       });
+//     } else {
+//       res.status(200).json({
+//         isSuccess: true
+//       });
+//     }
+//   });
+// });
+// app.get(`/get_asset_config`, (req, res) => {
+//   var qry1 =
+//     "select b.*,a.serial_no from asset a,asset_config b where a.id=b.asset_id and b.status=1 order by b.id";
+//   var qry2 =
+//     "select a.serial_no from asset a,asset_config b where a.id=b.child_asset_id and b.status=1 order by b.id";
+//   var x;
+//   connection.query(qry1, (error, results, fields) => {
+//     if (error) {
+//       res.status(501).json({
+//         isSuccess: false,
+//         error: error
+//       });
+//       return;
+//     } else {
+//       x = results;
+//       connection.query(qry2, (error, results, fields) => {
+//         res.json({
+//           asset_config_id: x,
+//           asset_config_child: results
+//         });
+//       });
+//     }
+//   });
+// });
 // app.get(`/in_damaged_stock`, (req, res) => {
 //   var qry1 = "select * from asset where asset_type_id=? and status=?";
 //   var status = req.query.status;
@@ -329,412 +335,412 @@ app.get(`/get_asset_config`, (req, res) => {
 //     }
 //   });
 // });
-app.get(`/damaged_assets`, (req, res) => {
-  var qry = "select * from asset";
-  connection.query(qry, (error, results, fields) => {
-    if (error) {
-      res.status(501).json({
-        isSuccess: false,
-        error: error
-      });
-    } else {
-      res.status(200).json({
-        isSuccess: true,
-        results: results
-      });
-    }
-  });
-});
-app.get(`/return_from_repair`, (req, res) => {
-  var qry = "update asset set status=1 where id=?";
-  var id = req.query.id;
-  connection.query(qry, [id], (error, results, fields) => {
-    if (error) {
-      res.status(501).json({
-        isSuccess: false,
-        error: error
-      });
-    } else {
-      res.status(200).json({
-        isSuccess: true
-      });
-    }
-  });
-});
-app.get(`/send_for_repair`, (req, res) => {
-  var qry =
-    "update asset set status=2, comments=concat(coalesce(comments, ''),' ',?)  where id=?";
-  var id = req.query.id;
-  var comments = req.query.comments;
-  connection.query(qry, [comments, id], (error, results, fields) => {
-    if (error) {
-      res.status(501).json({
-        isSuccess: false,
-        error: error
-      });
-    } else {
-      res.status(200).json({
-        isSuccess: true
-      });
-    }
-  });
-});
-app.get(`/get_customer_order_details2`, (req, res) => {
-  var qry =
-    "SELECT a.make,b.* from asset a,order_detail b,order_master c where b.order_id=c.id and c.ID=? and a.status=0 and c.customer_id=? and b.serial_number=a.serial_no";
-  var customer_id = req.query.customer_id;
-  var challan_number = req.query.challan_number;
-  connection.query(
-    qry,
-    [challan_number, customer_id],
-    (error, results, fields) => {
-      if (error) {
-        res.status(501).json({
-          isSuccess: false,
-          error: error
-        });
-      } else {
-        res.status(200).json({
-          isSuccess: true,
-          results: results
-        });
-      }
-    }
-  );
-});
-app.post(`/change_config_table_on_add`, (req, res) => {
-  var qry = `insert into asset_config
-        (asset_id,child_asset_id,create_timestamp,update_timestamp,parent_asset_id,status)
-        values
-        (?,?,null,null,null,1)`;
-  //var asset_id=req.query.asset_id
-  //var child_asset_id=req.query.child_asset_id
-  var data = req.query.data;
-  var jsonData = JSON.parse(data);
-  var i;
-  var asset_id, child_asset_id;
-  connection.beginTransaction(function(err) {
-    if (err) {
-      throw err;
-    }
-    for (i = 0; i < jsonData.length; i++) {
-      if (jsonData[i].parentId >= 0) {
-        //console.log(jsonData[i])
-        asset_id = jsonData[jsonData[i].parentId].assetId;
-        child_asset_id = jsonData[i].assetId;
-        connection.query(
-          qry,
-          [child_asset_id, asset_id],
-          (error, results, response) => {
-            if (error) {
-              res.status(501).json({
-                error: error
-              });
-              return connection.rollback();
-              return;
-            }
-          }
-        );
-      }
-    }
-    connection.commit(function(err) {
-      if (err) {
-        return connection.rollback();
-      } else {
-        res.status(200).json({
-          isSuccess: true
-        });
-      }
-    });
-  });
-});
-app.post(`/order_create`, (req, res) => {
-  var jsonData = req.query.data;
-  var data = JSON.parse(jsonData);
-  // console.log(req.query)
-  var i;
-  // inserts data into order master
-  var qInsertOrderMaster = `insert into order_master
-            (order_date,customer_id,total_amount,challan_number, customer_location_id,
-                parent_challan_id, uea_number, po, po_reference, cn_number, delivery_person_name, comment)
-            values
-            (?,?,?,last_insert_id()+1,?,?,?,?,?,?,?,?)`;
+// app.get(`/damaged_assets`, (req, res) => {
+//   var qry = "select * from asset";
+//   connection.query(qry, (error, results, fields) => {
+//     if (error) {
+//       res.status(501).json({
+//         isSuccess: false,
+//         error: error
+//       });
+//     } else {
+//       res.status(200).json({
+//         isSuccess: true,
+//         results: results
+//       });
+//     }
+//   });
+// });
+// app.get(`/return_from_repair`, (req, res) => {
+//   var qry = "update asset set status=1 where id=?";
+//   var id = req.query.id;
+//   connection.query(qry, [id], (error, results, fields) => {
+//     if (error) {
+//       res.status(501).json({
+//         isSuccess: false,
+//         error: error
+//       });
+//     } else {
+//       res.status(200).json({
+//         isSuccess: true
+//       });
+//     }
+//   });
+// });
+// app.get(`/send_for_repair`, (req, res) => {
+//   var qry =
+//     "update asset set status=2, comments=concat(coalesce(comments, ''),' ',?)  where id=?";
+//   var id = req.query.id;
+//   var comments = req.query.comments;
+//   connection.query(qry, [comments, id], (error, results, fields) => {
+//     if (error) {
+//       res.status(501).json({
+//         isSuccess: false,
+//         error: error
+//       });
+//     } else {
+//       res.status(200).json({
+//         isSuccess: true
+//       });
+//     }
+//   });
+// });
+// app.get(`/get_customer_order_details2`, (req, res) => {
+//   var qry =
+//     "SELECT a.make,b.* from asset a,order_detail b,order_master c where b.order_id=c.id and c.ID=? and a.status=0 and c.customer_id=? and b.serial_number=a.serial_no";
+//   var customer_id = req.query.customer_id;
+//   var challan_number = req.query.challan_number;
+//   connection.query(
+//     qry,
+//     [challan_number, customer_id],
+//     (error, results, fields) => {
+//       if (error) {
+//         res.status(501).json({
+//           isSuccess: false,
+//           error: error
+//         });
+//       } else {
+//         res.status(200).json({
+//           isSuccess: true,
+//           results: results
+//         });
+//       }
+//     }
+//   );
+// });
+// app.post(`/change_config_table_on_add`, (req, res) => {
+//   var qry = `insert into asset_config
+//         (asset_id,child_asset_id,create_timestamp,update_timestamp,parent_asset_id,status)
+//         values
+//         (?,?,null,null,null,1)`;
+//   //var asset_id=req.query.asset_id
+//   //var child_asset_id=req.query.child_asset_id
+//   var data = req.query.data;
+//   var jsonData = JSON.parse(data);
+//   var i;
+//   var asset_id, child_asset_id;
+//   connection.beginTransaction(function(err) {
+//     if (err) {
+//       throw err;
+//     }
+//     for (i = 0; i < jsonData.length; i++) {
+//       if (jsonData[i].parentId >= 0) {
+//         //console.log(jsonData[i])
+//         asset_id = jsonData[jsonData[i].parentId].assetId;
+//         child_asset_id = jsonData[i].assetId;
+//         connection.query(
+//           qry,
+//           [child_asset_id, asset_id],
+//           (error, results, response) => {
+//             if (error) {
+//               res.status(501).json({
+//                 error: error
+//               });
+//               return connection.rollback();
+//               return;
+//             }
+//           }
+//         );
+//       }
+//     }
+//     connection.commit(function(err) {
+//       if (err) {
+//         return connection.rollback();
+//       } else {
+//         res.status(200).json({
+//           isSuccess: true
+//         });
+//       }
+//     });
+//   });
+// });
+// app.post(`/order_create`, (req, res) => {
+//   var jsonData = req.query.data;
+//   var data = JSON.parse(jsonData);
+//   // console.log(req.query)
+//   var i;
+//   // inserts data into order master
+//   var qInsertOrderMaster = `insert into order_master
+//             (order_date,customer_id,total_amount,challan_number, customer_location_id,
+//                 parent_challan_id, uea_number, po, po_reference, cn_number, delivery_person_name, comment)
+//             values
+//             (?,?,?,last_insert_id()+1,?,?,?,?,?,?,?,?)`;
 
-  // insert cart item details into order details
-  var qInsertOrderDetails = `insert into order_detail
-        (order_id,asset_id, rental_begin_date, rental_end_date, daily_unit_price, current_procurement_price,
-            total_unit_price, gst_value, total_value, status)
-        values((select max(ID) from order_master),?,?,?,?,?,?,?,?,1)`;
+//   // insert cart item details into order details
+//   var qInsertOrderDetails = `insert into order_detail
+//         (order_id,asset_id, rental_begin_date, rental_end_date, daily_unit_price, current_procurement_price,
+//             total_unit_price, gst_value, total_value, status)
+//         values((select max(ID) from order_master),?,?,?,?,?,?,?,?,1)`;
 
-  var orderDate = data.orderDate;
-  var customerId = data.customerId;
-  var totalAmount = data.totalAmount;
-  var customerLocationId = data.customerLocationId;
-  var parentChallanId = data.parentChallanId;
-  var ueaNumber = data.ueaNumber;
-  var po = data.po;
-  var poReference = data.poReference;
-  var cnNumber = data.cnNumber;
-  var deliveryPersonName = data.deliveryPersonName;
-  var comment = data.comment;
-  var cartAssetDetails = data.cartAssetDetails;
-  var last_challan_number = "";
+//   var orderDate = data.orderDate;
+//   var customerId = data.customerId;
+//   var totalAmount = data.totalAmount;
+//   var customerLocationId = data.customerLocationId;
+//   var parentChallanId = data.parentChallanId;
+//   var ueaNumber = data.ueaNumber;
+//   var po = data.po;
+//   var poReference = data.poReference;
+//   var cnNumber = data.cnNumber;
+//   var deliveryPersonName = data.deliveryPersonName;
+//   var comment = data.comment;
+//   var cartAssetDetails = data.cartAssetDetails;
+//   var last_challan_number = "";
 
-  // console.log('\n***CArt:', cartAssetDetails)
+//   // console.log('\n***CArt:', cartAssetDetails)
 
-  connection.beginTransaction(function(err) {
-    if (err) {
-      throw err;
-    }
-    connection.query(
-      qInsertOrderMaster,
-      [
-        orderDate,
-        customerId,
-        totalAmount,
-        customerLocationId,
-        parentChallanId,
-        ueaNumber,
-        po,
-        poReference,
-        cnNumber,
-        deliveryPersonName,
-        comment
-      ],
-      (error, results, fields) => {
-        if (error) {
-          res.status(501).json({
-            isSuccess: false,
-            error: error
-          });
-          return connection.rollback();
-          return;
-          //check1
-        } else {
-          // console.log(cartAssetDetails[0].assetId)
-          //order_id,asset_id,serial_number,rental_period,unit_price,gst_value,total_value
-          for (i = 0; i < cartAssetDetails.length; i++) {
-            // console.log('cart asset: ', cartAssetDetails[i].assetId)
-            connection.query(
-              qInsertOrderDetails,
-              [
-                cartAssetDetails[i].assetId,
-                cartAssetDetails[i].rentalBeginDate,
-                cartAssetDetails[i].rentalEndDate,
-                cartAssetDetails[i].dailyUnitPrice,
-                cartAssetDetails[i].currentProcurementPrice,
-                cartAssetDetails[i].totalUnitPrice,
-                cartAssetDetails[i].gstValue,
-                cartAssetDetails[i].totalValue,
-                cartAssetDetails[i].status
-              ],
-              (errro, results, fields) => {
-                // console.log('erf: ', error,results,fields)
-                if (error) {
-                  // return connection.rollback();
+//   connection.beginTransaction(function(err) {
+//     if (err) {
+//       throw err;
+//     }
+//     connection.query(
+//       qInsertOrderMaster,
+//       [
+//         orderDate,
+//         customerId,
+//         totalAmount,
+//         customerLocationId,
+//         parentChallanId,
+//         ueaNumber,
+//         po,
+//         poReference,
+//         cnNumber,
+//         deliveryPersonName,
+//         comment
+//       ],
+//       (error, results, fields) => {
+//         if (error) {
+//           res.status(501).json({
+//             isSuccess: false,
+//             error: error
+//           });
+//           return connection.rollback();
+//           return;
+//           //check1
+//         } else {
+//           // console.log(cartAssetDetails[0].assetId)
+//           //order_id,asset_id,serial_number,rental_period,unit_price,gst_value,total_value
+//           for (i = 0; i < cartAssetDetails.length; i++) {
+//             // console.log('cart asset: ', cartAssetDetails[i].assetId)
+//             connection.query(
+//               qInsertOrderDetails,
+//               [
+//                 cartAssetDetails[i].assetId,
+//                 cartAssetDetails[i].rentalBeginDate,
+//                 cartAssetDetails[i].rentalEndDate,
+//                 cartAssetDetails[i].dailyUnitPrice,
+//                 cartAssetDetails[i].currentProcurementPrice,
+//                 cartAssetDetails[i].totalUnitPrice,
+//                 cartAssetDetails[i].gstValue,
+//                 cartAssetDetails[i].totalValue,
+//                 cartAssetDetails[i].status
+//               ],
+//               (errro, results, fields) => {
+//                 // console.log('erf: ', error,results,fields)
+//                 if (error) {
+//                   // return connection.rollback();
 
-                  return connection.rollback();
-                  return;
-                }
-                //console.log(cartAssetDetails[i].assetId,cartAssetDetails[i].serialNo,cartAssetDetails[i].unitPrice,cartAssetDetails[i].gst,cartAssetDetails[i].totalPrice)
-              }
-            );
-          }
-        }
-      }
-    );
-    connection.commit(function(err) {
-      if (err) {
-        res.status(501).json({
-          isSuccess: false,
-          error: error
-        });
-        return connection.rollback();
-      } else {
-        res.status(200).json({
-          isSuccess: true
-        });
-      }
-    });
-  });
-});
+//                   return connection.rollback();
+//                   return;
+//                 }
+//                 //console.log(cartAssetDetails[i].assetId,cartAssetDetails[i].serialNo,cartAssetDetails[i].unitPrice,cartAssetDetails[i].gst,cartAssetDetails[i].totalPrice)
+//               }
+//             );
+//           }
+//         }
+//       }
+//     );
+//     connection.commit(function(err) {
+//       if (err) {
+//         res.status(501).json({
+//           isSuccess: false,
+//           error: error
+//         });
+//         return connection.rollback();
+//       } else {
+//         res.status(200).json({
+//           isSuccess: true
+//         });
+//       }
+//     });
+//   });
+// });
 
-app.post(`/change_config_table_on_delete`, (req, res) => {
-  // var qry1="select id from asset where serial_no=?"
-  var qry =
-    "insert into asset_config(asset_id,child_asset_id,create_timestamp,update_timestamp,parent_asset_id,status) values((select id from asset where serial_no=?),null,null,null,?,0)";
-  var serial_no = req.query.serial_no;
-  var id = req.query.asset_id;
-  connection.query(qry, [serial_no, id], (error, results, fields) => {
-    if (error) {
-      res.status(501).json({
-        isSuccess: false,
-        error: error
-      });
-      return;
-    } else {
-      res.status(200).json({
-        isSuccess: true
-      });
-    }
-  });
-});
+// app.post(`/change_config_table_on_delete`, (req, res) => {
+//   // var qry1="select id from asset where serial_no=?"
+//   var qry =
+//     "insert into asset_config(asset_id,child_asset_id,create_timestamp,update_timestamp,parent_asset_id,status) values((select id from asset where serial_no=?),null,null,null,?,0)";
+//   var serial_no = req.query.serial_no;
+//   var id = req.query.asset_id;
+//   connection.query(qry, [serial_no, id], (error, results, fields) => {
+//     if (error) {
+//       res.status(501).json({
+//         isSuccess: false,
+//         error: error
+//       });
+//       return;
+//     } else {
+//       res.status(200).json({
+//         isSuccess: true
+//       });
+//     }
+//   });
+// });
 
-app.post(`/insert_asset_value`, (req, res) => {
-  var i;
-  var typeName = req.query.type_name;
-  var static = JSON.parse(req.query.static);
-  var dynamic = JSON.parse(req.query.dynamic);
-  //change_config_table
-  var qryAsset =
-    "insert into asset(asset_type_id, serial_no, purchase_date, purchase_price, supplier, warehouse_location, procurement_date, status, create_timestamp, update_timestamp, part_code, make, warranty_end_date, transfer_order_no, comments, supplier_invoice, supplier_date, branch, transfer_order_date,hsnCode) values ((select id from asset_types where type_name=?),?,?,?,?,?,?,?,null,null,?,?,?,?,?,?,?,?,?,?)";
+// app.post(`/insert_asset_value`, (req, res) => {
+//   var i;
+//   var typeName = req.query.type_name;
+//   var static = JSON.parse(req.query.static);
+//   var dynamic = JSON.parse(req.query.dynamic);
+//   //change_config_table
+//   var qryAsset =
+//     "insert into asset(asset_type_id, serial_no, purchase_date, purchase_price, supplier, warehouse_location, procurement_date, status, create_timestamp, update_timestamp, part_code, make, warranty_end_date, transfer_order_no, comments, supplier_invoice, supplier_date, branch, transfer_order_date,hsnCode) values ((select id from asset_types where type_name=?),?,?,?,?,?,?,?,null,null,?,?,?,?,?,?,?,?,?,?)";
 
-  var qryAssetDetails =
-    "insert into asset_details(asset_id,attribute_id,attribute_value,create_timestamp,update_timestamp) values ((select id from asset where serial_no=?),?,?,null,null)";
+//   var qryAssetDetails =
+//     "insert into asset_details(asset_id,attribute_id,attribute_value,create_timestamp,update_timestamp) values ((select id from asset where serial_no=?),?,?,null,null)";
 
-  connection.beginTransaction(function(err) {
-    if (err) {
-      throw err;
-    }
-    connection.query(
-      qryAsset,
-      [
-        typeName,
-        static.serialNo,
-        static.purchaseDate,
-        static.purchasePrice,
-        static.supplier,
-        static.warehouseLocation,
-        static.procurementDate,
-        static.status,
-        static.partCode,
-        static.make,
-        static.warrantyEndDate,
-        static.transferOrder,
-        static.comment,
-        static.supplierInvoiceNo,
-        static.supplierInvoiceDate,
-        static.branch,
-        static.transferOrderDate,
-        static.hsnCode
-      ],
-      (error, results, fields) => {
-        if (error) {
-          // console.log('query 1 fail')
-          res.status(501).json({
-            isSuccess: false,
-            error: error
-          });
-          return connection.rollback();
-          //return;
-        } else {
-          for (i = 0; i < dynamic.length; i++) {
-            // console.log('query 2')
-            connection.query(
-              qryAssetDetails,
-              [static.serialNo, dynamic[i].id, dynamic[i].value],
-              (error, results, fields) => {
-                if (error) {
-                  res.status(501).json({
-                    isSuccess: false,
-                    error: error
-                  });
-                  return connection.rollback();
-                  return;
-                }
-              }
-            );
-          }
-          res.status(200).json({
-            isSuccess: true
-          });
-        }
-      }
-    );
+//   connection.beginTransaction(function(err) {
+//     if (err) {
+//       throw err;
+//     }
+//     connection.query(
+//       qryAsset,
+//       [
+//         typeName,
+//         static.serialNo,
+//         static.purchaseDate,
+//         static.purchasePrice,
+//         static.supplier,
+//         static.warehouseLocation,
+//         static.procurementDate,
+//         static.status,
+//         static.partCode,
+//         static.make,
+//         static.warrantyEndDate,
+//         static.transferOrder,
+//         static.comment,
+//         static.supplierInvoiceNo,
+//         static.supplierInvoiceDate,
+//         static.branch,
+//         static.transferOrderDate,
+//         static.hsnCode
+//       ],
+//       (error, results, fields) => {
+//         if (error) {
+//           // console.log('query 1 fail')
+//           res.status(501).json({
+//             isSuccess: false,
+//             error: error
+//           });
+//           return connection.rollback();
+//           //return;
+//         } else {
+//           for (i = 0; i < dynamic.length; i++) {
+//             // console.log('query 2')
+//             connection.query(
+//               qryAssetDetails,
+//               [static.serialNo, dynamic[i].id, dynamic[i].value],
+//               (error, results, fields) => {
+//                 if (error) {
+//                   res.status(501).json({
+//                     isSuccess: false,
+//                     error: error
+//                   });
+//                   return connection.rollback();
+//                   return;
+//                 }
+//               }
+//             );
+//           }
+//           res.status(200).json({
+//             isSuccess: true
+//           });
+//         }
+//       }
+//     );
 
-    connection.commit(function(err) {
-      if (err) {
-        return connection.rollback();
-      }
-    });
-  });
-});
-app.get("/change_inventory_status", (req, res) => {
-  var i;
-  var qry = "update asset set status=0 where id=? ";
-  var maxChallanNoQuery = `select max(challan_number) last_challan from order_master`;
-  var last_challan_number = "";
+//     connection.commit(function(err) {
+//       if (err) {
+//         return connection.rollback();
+//       }
+//     });
+//   });
+// });
+// app.get("/change_inventory_status", (req, res) => {
+//   var i;
+//   var qry = "update asset set status=0 where id=? ";
+//   var maxChallanNoQuery = `select max(challan_number) last_challan from order_master`;
+//   var last_challan_number = "";
 
-  var check = JSON.parse(req.query.data);
-  //console.log(check)
-  // console.log(req.query)
-  for (i = 0; i < check.length; i++) {
-    connection.query(qry, [check[i]], (error, results, fields) => {
-      if (error) {
-        res.status(501).json({
-          isSuccess: false,
-          error: error
-        });
-        return;
-      }
-    });
-  }
-  connection.query(maxChallanNoQuery, (error, results, fields) => {
-    last_challan_number = results;
-    console.log("last_challan_number=" + JSON.stringify(last_challan_number));
-    res.status(200).json({
-      isSuccess: true,
-      last_challan_number
-    });
-  });
-});
+//   var check = JSON.parse(req.query.data);
+//   //console.log(check)
+//   // console.log(req.query)
+//   for (i = 0; i < check.length; i++) {
+//     connection.query(qry, [check[i]], (error, results, fields) => {
+//       if (error) {
+//         res.status(501).json({
+//           isSuccess: false,
+//           error: error
+//         });
+//         return;
+//       }
+//     });
+//   }
+//   connection.query(maxChallanNoQuery, (error, results, fields) => {
+//     last_challan_number = results;
+//     console.log("last_challan_number=" + JSON.stringify(last_challan_number));
+//     res.status(200).json({
+//       isSuccess: true,
+//       last_challan_number
+//     });
+//   });
+// });
 
-app.post(`/insert_asset_type`, (req, res) => {
-  var type_name = req.query.type_name;
-  var attributes = req.query.attributes;
-  var jsonData = JSON.parse(attributes);
-  var length = jsonData.length;
-  var i;
-  var qry =
-    "insert into asset_types(type_name,is_active,create_timestamp,update_timestamp) values (?,true,null,null)";
-  var qry2 = `insert into asset_types_attributes(asset_type_id,attr_name,is_modifiable,is_mandatory,is_active,create_timestamp,update_timestamp,is_printable) values ((select id from asset_types where id=(SELECT MAX(id) from asset_types)),?,?,?,true,null,null,?)`;
-  connection.beginTransaction(function(err) {
-    if (err) {
-      throw err;
-    }
-    //check1
-    connection.query(qry, [type_name], (error, results, fields) => {
-      if (!error) {
-        res.status(200).json({
-          results: "success"
-        });
-        for (i = 0; i < length; i++) {
-          connection.query(qry2, [
-            jsonData[i].name,
-            jsonData[i].isMandatory,
-            jsonData[i].isModifiable,
-            jsonData[i].isPrintable
-          ]);
-        }
-      } else {
-        if (error) {
-          if (error.errno === 1062) {
-            res.status(501).json({
-              is_Error: true
-            });
-          }
-          return connection.rollback();
-          return;
-        }
-      }
-    });
-    connection.commit(function(err) {
-      if (err) {
-        return connection.rollback();
-      }
-    });
-  });
-});
+// app.post(`/insert_asset_type`, (req, res) => {
+//   var type_name = req.query.type_name;
+//   var attributes = req.query.attributes;
+//   var jsonData = JSON.parse(attributes);
+//   var length = jsonData.length;
+//   var i;
+//   var qry =
+//     "insert into asset_types(type_name,is_active,create_timestamp,update_timestamp) values (?,true,null,null)";
+//   var qry2 = `insert into asset_types_attributes(asset_type_id,attr_name,is_modifiable,is_mandatory,is_active,create_timestamp,update_timestamp,is_printable) values ((select id from asset_types where id=(SELECT MAX(id) from asset_types)),?,?,?,true,null,null,?)`;
+//   connection.beginTransaction(function(err) {
+//     if (err) {
+//       throw err;
+//     }
+//     //check1
+//     connection.query(qry, [type_name], (error, results, fields) => {
+//       if (!error) {
+//         res.status(200).json({
+//           results: "success"
+//         });
+//         for (i = 0; i < length; i++) {
+//           connection.query(qry2, [
+//             jsonData[i].name,
+//             jsonData[i].isMandatory,
+//             jsonData[i].isModifiable,
+//             jsonData[i].isPrintable
+//           ]);
+//         }
+//       } else {
+//         if (error) {
+//           if (error.errno === 1062) {
+//             res.status(501).json({
+//               is_Error: true
+//             });
+//           }
+//           return connection.rollback();
+//           return;
+//         }
+//       }
+//     });
+//     connection.commit(function(err) {
+//       if (err) {
+//         return connection.rollback();
+//       }
+//     });
+//   });
+// });
 
 // API to insert more attributes into existing asset-type
 // usage /modify_asset_type?type_name=[type name]&attributes=[new attributes]
@@ -1603,88 +1609,88 @@ app.get(`/get_challan_drafts`, (req, res) => {
 });
 
 // API that accepts a challandId and outputs the challan details of that asset
-app.get(`/get_challan_details`, (req, res) => {
-  var challanId = req.query.challan_id;
-  var qry = "select challan_details from challan_draft where id = ?";
-  connection.query(qry, [challanId], (error, results, fields) => {
-    if (!error) {
-      res.status(200).json({
-        isSuccess: true,
-        results: results
-      });
-    } else {
-      res.status(501).json({
-        isSuccess: false,
-        error: error
-      });
-    }
-  });
-});
+// app.get(`/get_challan_details`, (req, res) => {
+//   var challanId = req.query.challan_id;
+//   var qry = "select challan_details from challan_draft where id = ?";
+//   connection.query(qry, [challanId], (error, results, fields) => {
+//     if (!error) {
+//       res.status(200).json({
+//         isSuccess: true,
+//         results: results
+//       });
+//     } else {
+//       res.status(501).json({
+//         isSuccess: false,
+//         error: error
+//       });
+//     }
+//   });
+// });
 
 // API that accepts a challandId and deletes that challan
-app.get(`/delete_challan_details`, (req, res) => {
-  var challanId = req.query.challan_id;
-  var qry = "delete from challan_draft where id = ?";
-  connection.query(qry, [challanId], (error, results, fields) => {
-    if (!error) {
-      res.status(200).json({
-        isSuccess: true
-      });
-    } else {
-      res.status(501).json({
-        isSuccess: false,
-        error: error
-      });
-    }
-  });
-});
+// app.get(`/delete_challan_details`, (req, res) => {
+//   var challanId = req.query.challan_id;
+//   var qry = "delete from challan_draft where id = ?";
+//   connection.query(qry, [challanId], (error, results, fields) => {
+//     if (!error) {
+//       res.status(200).json({
+//         isSuccess: true
+//       });
+//     } else {
+//       res.status(501).json({
+//         isSuccess: false,
+//         error: error
+//       });
+//     }
+//   });
+// });
 
-app.get("/reset_inventory_status", (req, res) => {
-  var i;
-  var qry = "update asset set status=1 where id=? ";
-  var check = JSON.parse(req.query.data);
-  //console.log(check)
-  // console.log('query is: ',req.query)
-  for (i = 0; i < check.length; i++) {
-    connection.query(qry, [check[i]], (error, results, fields) => {
-      if (error) {
-        res.status(501).json({
-          isSuccess: false,
-          error: error
-        });
-        return;
-      }
-    });
-  }
-  res.status(200).json({
-    isSuccess: true
-  });
-});
+// app.get("/reset_inventory_status", (req, res) => {
+//   var i;
+//   var qry = "update asset set status=1 where id=? ";
+//   var check = JSON.parse(req.query.data);
+//   //console.log(check)
+//   // console.log('query is: ',req.query)
+//   for (i = 0; i < check.length; i++) {
+//     connection.query(qry, [check[i]], (error, results, fields) => {
+//       if (error) {
+//         res.status(501).json({
+//           isSuccess: false,
+//           error: error
+//         });
+//         return;
+//       }
+//     });
+//   }
+//   res.status(200).json({
+//     isSuccess: true
+//   });
+// });
 
-app.get(`/get_customer_order_details`, (req, res) => {
-  // input cutomer_id
+// app.get(`/get_customer_order_details`, (req, res) => {
+//   // input cutomer_id
 
-  // 1. fetch entries from order master based on the id
-  // 2. from fk location_id fetch the corresponding locations
-  // 3. fetch the details form order detail on the basis of order_id
+//   // 1. fetch entries from order master based on the id
+//   // 2. from fk location_id fetch the corresponding locations
+//   // 3. fetch the details form order detail on the basis of order_id
 
-  var qry = `select a.*,b.*,c.*,d.*,e.*,f.type_name from order_master a,order_detail b,customer c,customer_location_master d,asset e,asset_types f
-        where a.customer_id=c.Customer_Id and a.customer_location_id=d.CID and a.ID=b.order_id and b.asset_id=e.id and e.asset_type_id=f.id and a.customer_id=? and b.status=1`;
-  var customer_id = req.query.customer_id;
-  connection.query(qry, [customer_id], (error, results, fields) => {
-    if (error) {
-      res.status(501).json({
-        isSuccess: false,
-        error: error
-      });
-    } else {
-      res.status(200).json({
-        isSuccess: true,
-        results: results
-      });
-    }
-  });
-});
+//   var qry = `select a.*,b.*,c.*,d.*,e.*,f.type_name from order_master a,order_detail b,customer c,customer_location_master d,asset e,asset_types f
+//         where a.customer_id=c.Customer_Id and a.customer_location_id=d.CID and a.ID=b.order_id and b.asset_id=e.id and e.asset_type_id=f.id and a.customer_id=? and b.status=1`;
+//   var customer_id = req.query.customer_id;
+//   connection.query(qry, [customer_id], (error, results, fields) => {
+//     if (error) {
+//       res.status(501).json({
+//         isSuccess: false,
+//         error: error
+//       });
+//     } else {
+//       res.status(200).json({
+//         isSuccess: true,
+//         results: results
+//       });
+//     }
+//   });
+// });
 
 /*
 selectedcheckboxassets:
@@ -1702,104 +1708,104 @@ selectedorderids
 update the order_detail table and set status to 0 according to the oids given
 */
 
-app.get(`/change_status_on_return`, (req, res) => {
-  var qUpdateAsset =
-    "update asset set status = ?, comments = concat(coalesce(comments, ''),' ',?) where id = ?";
-  var qUpdateOrder = "update order_detail set status = 0 where oid = ?";
+// app.get(`/change_status_on_return`, (req, res) => {
+//   var qUpdateAsset =
+//     "update asset set status = ?, comments = concat(coalesce(comments, ''),' ',?) where id = ?";
+//   var qUpdateOrder = "update order_detail set status = 0 where oid = ?";
 
-  var assetUpdates = JSON.parse(req.query.data);
-  var orderUpdates = JSON.parse(req.query.oid);
-  connection.beginTransaction(function(err) {
-    if (err) {
-      throw err;
-    }
-    for (var i = 0; i < assetUpdates.length; i++) {
-      // var str ="update asset set status = "+assetUpdates[i].status+", comments= concat(coalesce(comments, ''),' ',"+assetUpdates[i].comments+") where id = "+assetUpdates[i].id
+//   var assetUpdates = JSON.parse(req.query.data);
+//   var orderUpdates = JSON.parse(req.query.oid);
+//   connection.beginTransaction(function(err) {
+//     if (err) {
+//       throw err;
+//     }
+//     for (var i = 0; i < assetUpdates.length; i++) {
+//       // var str ="update asset set status = "+assetUpdates[i].status+", comments= concat(coalesce(comments, ''),' ',"+assetUpdates[i].comments+") where id = "+assetUpdates[i].id
 
-      connection.query(
-        qUpdateAsset,
-        [assetUpdates[i].status, assetUpdates[i].comments, assetUpdates[i].id],
-        (error, results, response) => {
-          if (error) {
-            // console.log('***error: ', error)
-            res.status(501).json({
-              error
-            });
-            return connection.rollback();
-            return;
-          }
-        }
-      );
-    }
+//       connection.query(
+//         qUpdateAsset,
+//         [assetUpdates[i].status, assetUpdates[i].comments, assetUpdates[i].id],
+//         (error, results, response) => {
+//           if (error) {
+//             // console.log('***error: ', error)
+//             res.status(501).json({
+//               error
+//             });
+//             return connection.rollback();
+//             return;
+//           }
+//         }
+//       );
+//     }
 
-    for (var i = 0; i < orderUpdates.length; i++) {
-      // console.log('***order: ', orderUpdates[i])
-      connection.query(
-        qUpdateOrder,
-        [orderUpdates[i]],
-        (error, results, response) => {
-          if (error) {
-            // console.log('***error2: ', error)
-            res.status(501).json({
-              error
-            });
-            return connection.rollback();
-            return;
-          }
-        }
-      );
-    }
-    connection.commit(function(err) {
-      if (err) {
-        res.status(501).json({
-          error: err
-        });
-        return connection.rollback();
-      } else {
-        res.status(200).json({
-          isSuccess: true
-        });
-      }
-    });
-  });
-});
+//     for (var i = 0; i < orderUpdates.length; i++) {
+//       // console.log('***order: ', orderUpdates[i])
+//       connection.query(
+//         qUpdateOrder,
+//         [orderUpdates[i]],
+//         (error, results, response) => {
+//           if (error) {
+//             // console.log('***error2: ', error)
+//             res.status(501).json({
+//               error
+//             });
+//             return connection.rollback();
+//             return;
+//           }
+//         }
+//       );
+//     }
+//     connection.commit(function(err) {
+//       if (err) {
+//         res.status(501).json({
+//           error: err
+//         });
+//         return connection.rollback();
+//       } else {
+//         res.status(200).json({
+//           isSuccess: true
+//         });
+//       }
+//     });
+//   });
+// });
 
 // this.state.challanCartItem.make
 // this.state.selectedCustomerDetail.CName
 
-app.get(`/get_customer_office_departments`, (req, res) => {
-  var qry = "SELECT * from customer_office_departments";
-  connection.query(qry, (error, results, fields) => {
-    if (error) {
-      res.status(501).json({
-        isSuccess: false,
-        error: error
-      });
-    } else {
-      res.status(200).json({
-        isSuccess: true,
-        results: results
-      });
-    }
-  });
-});
+// app.get(`/get_customer_office_departments`, (req, res) => {
+//   var qry = "SELECT * from customer_office_departments";
+//   connection.query(qry, (error, results, fields) => {
+//     if (error) {
+//       res.status(501).json({
+//         isSuccess: false,
+//         error: error
+//       });
+//     } else {
+//       res.status(200).json({
+//         isSuccess: true,
+//         results: results
+//       });
+//     }
+//   });
+// });
 
-app.get(`/get_customer_location_contacts`, (req, res) => {
-  var qry = "SELECT * from customer_location_contacts";
-  connection.query(qry, (error, results, fields) => {
-    if (error) {
-      res.status(501).json({
-        isSuccess: false,
-        error: error
-      });
-    } else {
-      res.status(200).json({
-        isSuccess: true,
-        results: results
-      });
-    }
-  });
-});
+// app.get(`/get_customer_location_contacts`, (req, res) => {
+//   var qry = "SELECT * from customer_location_contacts";
+//   connection.query(qry, (error, results, fields) => {
+//     if (error) {
+//       res.status(501).json({
+//         isSuccess: false,
+//         error: error
+//       });
+//     } else {
+//       res.status(200).json({
+//         isSuccess: true,
+//         results: results
+//       });
+//     }
+//   });
+// });
 
 /*
 * serves the index.html file when endpoint do not match any router

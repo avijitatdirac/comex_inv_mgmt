@@ -187,9 +187,7 @@ class Dashboard extends Component {
     });
 
     // API CALL: get all the order details of the customer
-    fetch(`/get_customer_order_details?customer_id=${customerId}`, {
-      method: "GET"
-    })
+    fetchAPI("/order/get_customer_order_details", { customer_id: customerId })
       .then(result => result.json())
       .then(data => {
         if (data.isSuccess) {
