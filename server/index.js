@@ -8,9 +8,9 @@ const session = require("express-session");
 const morgan = require("morgan");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
-const mysql = require("mysql");
 const fs = require("fs");
 const { resolve } = require("path");
+const connection = require("./connection");
 
 // create express app
 const app = express();
@@ -22,24 +22,18 @@ app.use(morgan("common"));
 // generate session
 app.use(
   session({
-    secret: process.env.SESSION_SECRET,
+    secret: process.env.SESSION_SECRET || "__ABCD__",
     resave: false,
     saveUninitialized: true,
     cookie: { maxAge: eval(process.env.COOKIE_MAX_AGE) }
   })
 );
 
-//DB connection
-const connection = mysql.createConnection({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_SCHEMA
-});
-
 // import other modules
 const auth = require("./authentication");
 const login = require("./login");
+const cust = require("./customer");
+const asset = require("./asset");
 
 /*
 * serves the index.html file without any session authentication 
@@ -68,79 +62,60 @@ app.use("/login", login);
  */
 app.use(auth);
 
-app.post(`/validateUser`, (req, res) => {
-  /*var validUser = "SELECT * FROM rajarshi_ce_inventory_db.users where username=? and password=?"
-    var username = req.query.username
-    var password = req.query.password
-    connection.query(validUser, [username,password],(error, results, fields) => {
-        console.log("userDetails="+JSON.stringify(results))
-        if (error) {
-            res.status(503).json({
-                isSuccess: false,
-                error: error
-            })
-        }
-        else
-            res.status(201).json({
-            isSuccess: true,
-            userDetails: results
-        })
-    })*/
-  var username = req.query.username;
-  res.status(201).json({
-    isSuccess: true,
-    customerRoles: username
-  });
-});
+/**
+ * all router added after main authentication module
+ */
+app.use("/cust", cust);
+app.use("/asset", asset);
 
-app.get(`/get_customer_roles`, (req, res) => {
-  var qrGetRoles = "SELECT * FROM  customer_role";
-  connection.query(qrGetRoles, (error, results, fields) => {
-    if (error) {
-      res.status(503).json({
-        isSuccess: false,
-        error: error
-      });
-    } else
-      res.status(201).json({
-        isSuccess: true,
-        customerRoles: results
-      });
-  });
-});
+// app.get(`/get_customer_roles`, (req, res) => {
+//   var qrGetRoles = "SELECT * FROM  customer_role";
+//   connection.query(qrGetRoles, (error, results, fields) => {
+//     if (error) {
+//       res.status(503).json({
+//         isSuccess: false,
+//         error: error
+//       });
+//     } else
+//       res.status(201).json({
+//         isSuccess: true,
+//         customerRoles: results
+//       });
+//   });
+// });
 
-app.get(`/get_customer`, (req, res) => {
-  var id = req.query.id;
-  var qrGetCust = "SELECT * FROM  customer";
-  var qrGetCustLoc =
-    "SELECT cl.* FROM  customer as c, customer_location_master as cl where c.Customer_Id=cl.Customer_Id";
-  //"SELECT c.Customer_Id, CName, Previously_Known_As, Pan_No, Comments, id, Address, City, State, Pincode, GST_Value, Contact_Person, Contact_Number_1, Contact_Number_2, Email_1, Email_2, Is_Main, Is_Valid, SEZ FROM  customer as c, customer_location_master as cl where c.Customer_Id=cl.Customer_Id"
-  //var qry1="select a.Customer_Id,a.CName,a.Contact_No,a.Contact_person,a.Email,a.Address,a.Address1,a.Address2,a.City,a.State,a.Pincode,b.Account_Number,b.IFSC_Code,b.Bank_Name,b.Account_Name,b.GST_Details,b.HSN_Code,b.SAC_Code,c.Location as location_location,c.Contact_No as location_contact_no,c.Contact_person as location_contact_person,c.Email as location_email,c.Address as location_address,c.Address1 as location_address1,c.Address2 as location_address2,c.City as location_city,c.State as location_state,c.Pincode as location_pincode,c.Bill_To_Address as location_bill_to_address,c.Bill_To_Address1 as location_bill_to_address1,c.Bill_To_Address2 as location_bill_to_address2,c.Ship_To_Address as location_ship_to_address,c.Ship_To_Address1 as location_ship_to_address1,c.Ship_To_Address2 as location_ship_to_address2 from customer a,customer_financial b,customer_location_detail c where a.Customer_Id=? and a.Customer_Id=b.Customer_Detail_Id and a.Customer_Id=c.Customer_Id"
-  //if(!id)
-  //{
-  var location;
-  connection.query(qrGetCust, (error, results, fields) => {
-    if (error) {
-      res.status(501).json({
-        isSuccess: false,
-        error: error
-      });
-    } else customerDetails = results;
-  });
-  connection.query(qrGetCustLoc, (error, results, fields) => {
-    if (error) {
-      res.status(501).json({
-        isSuccess: false,
-        error: error
-      });
-    } else
-      res.status(201).json({
-        isSuccess: true,
-        customerDetails: customerDetails,
-        locationDetails: results
-      });
-  });
-});
+// app.get(`/get_customer`, (req, res) => {
+//   var id = req.query.id;
+//   var qrGetCust = "SELECT * FROM  customer";
+//   var qrGetCustLoc =
+//     "SELECT cl.* FROM  customer as c, customer_location_master as cl where c.Customer_Id=cl.Customer_Id";
+//   //"SELECT c.Customer_Id, CName, Previously_Known_As, Pan_No, Comments, id, Address, City, State, Pincode, GST_Value, Contact_Person, Contact_Number_1, Contact_Number_2, Email_1, Email_2, Is_Main, Is_Valid, SEZ FROM  customer as c, customer_location_master as cl where c.Customer_Id=cl.Customer_Id"
+//   //var qry1="select a.Customer_Id,a.CName,a.Contact_No,a.Contact_person,a.Email,a.Address,a.Address1,a.Address2,a.City,a.State,a.Pincode,b.Account_Number,b.IFSC_Code,b.Bank_Name,b.Account_Name,b.GST_Details,b.HSN_Code,b.SAC_Code,c.Location as location_location,c.Contact_No as location_contact_no,c.Contact_person as location_contact_person,c.Email as location_email,c.Address as location_address,c.Address1 as location_address1,c.Address2 as location_address2,c.City as location_city,c.State as location_state,c.Pincode as location_pincode,c.Bill_To_Address as location_bill_to_address,c.Bill_To_Address1 as location_bill_to_address1,c.Bill_To_Address2 as location_bill_to_address2,c.Ship_To_Address as location_ship_to_address,c.Ship_To_Address1 as location_ship_to_address1,c.Ship_To_Address2 as location_ship_to_address2 from customer a,customer_financial b,customer_location_detail c where a.Customer_Id=? and a.Customer_Id=b.Customer_Detail_Id and a.Customer_Id=c.Customer_Id"
+//   //if(!id)
+//   //{
+//   var location;
+//   connection.query(qrGetCust, (error, results, fields) => {
+//     if (error) {
+//       res.status(501).json({
+//         isSuccess: false,
+//         error: error
+//       });
+//     } else customerDetails = results;
+//   });
+//   connection.query(qrGetCustLoc, (error, results, fields) => {
+//     if (error) {
+//       res.status(501).json({
+//         isSuccess: false,
+//         error: error
+//       });
+//     } else
+//       res.status(201).json({
+//         isSuccess: true,
+//         customerDetails: customerDetails,
+//         locationDetails: results
+//       });
+//   });
+// });
 app.get(`/remove_asset_value`, (req, res) => {
   var asset_id = req.query.asset_id;
   var attribute_id = req.query.attribute_id;
@@ -166,68 +141,68 @@ app.get(`/remove_asset_value`, (req, res) => {
   );
 });
 
-app.get(`/get_asset_status_count`, (req, res) => {
-  var qry1 =
-    "select b.id,b.type_name,count(*) as out_of_stock from asset a,asset_types b where status=0 and a.asset_type_id=b.id group by a.asset_type_id  order by b.id";
-  var qry2 =
-    "select b.id,b.type_name,count(*) as in_stock from asset a,asset_types b where status=1 and a.asset_type_id=b.id group by a.asset_type_id  order by b.id";
-  var qry3 =
-    "select b.id,b.type_name,count(*) as damaged from asset a,asset_types b where status=2 and a.asset_type_id=b.id group by a.asset_type_id  order by b.id";
-  var x, y;
-  connection.query(qry1, (error, results, fields) => {
-    x = results;
-  });
-  connection.query(qry2, (error, results, fields) => {
-    y = results;
-  });
-  connection.query(qry3, (error, results, fields) => {
-    res.status(200).json({
-      out_of_stock: x,
-      in_stock: y,
-      damaged: results
-    });
-  });
-});
-app.get(`/get_all_values`, (req, res) => {
-  var qry =
-    "select b.* from asset_types a,asset b where a.id=b.asset_type_id and a.type_name=?";
-  var x;
-  var type_name = req.query.type_name;
-  var qry1 =
-    "select d.asset_id,d.attribute_id,a.attr_name,d.attribute_value from asset_types_attributes" +
-    " a,asset_types b,asset c,asset_details d where b.id=a.asset_type_id and b.type_name=?" +
-    "and  c.asset_type_id=b.id and d.asset_id=c.id and d.attribute_id=a.id order by d.asset_id,d.attribute_id";
-  var hsnCodeQuery =
-    "select distinct b.hsnCode from asset_types a,asset b where a.id=b.asset_type_id and a.type_name=?";
-  connection.query(qry, [type_name], (error, results, fields) => {
-    if (error) {
-      res.status(200).json({
-        isSuccess: false,
-        error: error
-      });
-    } else {
-      x = results;
-    }
-  });
-  connection.query(hsnCodeQuery, [type_name], (error, results, fields) => {
-    if (error) {
-      res.status(200).json({
-        isSuccess: false,
-        error: error
-      });
-    } else {
-      hsn_result = results;
-    }
-  });
-  connection.query(qry1, [type_name], (error, results, fields) => {
-    res.status(201).json({
-      isSuccess: true,
-      dyna: results,
-      static: x,
-      hsnResult: hsn_result
-    });
-  });
-});
+// app.get(`/get_asset_status_count`, (req, res) => {
+//   var qry1 =
+//     "select b.id,b.type_name,count(*) as out_of_stock from asset a,asset_types b where status=0 and a.asset_type_id=b.id group by a.asset_type_id  order by b.id";
+//   var qry2 =
+//     "select b.id,b.type_name,count(*) as in_stock from asset a,asset_types b where status=1 and a.asset_type_id=b.id group by a.asset_type_id  order by b.id";
+//   var qry3 =
+//     "select b.id,b.type_name,count(*) as damaged from asset a,asset_types b where status=2 and a.asset_type_id=b.id group by a.asset_type_id  order by b.id";
+//   var x, y;
+//   connection.query(qry1, (error, results, fields) => {
+//     x = results;
+//   });
+//   connection.query(qry2, (error, results, fields) => {
+//     y = results;
+//   });
+//   connection.query(qry3, (error, results, fields) => {
+//     res.status(200).json({
+//       out_of_stock: x,
+//       in_stock: y,
+//       damaged: results
+//     });
+//   });
+// });
+// app.get(`/get_all_values`, (req, res) => {
+//   var qry =
+//     "select b.* from asset_types a,asset b where a.id=b.asset_type_id and a.type_name=?";
+//   var x;
+//   var type_name = req.query.type_name;
+//   var qry1 =
+//     "select d.asset_id,d.attribute_id,a.attr_name,d.attribute_value from asset_types_attributes" +
+//     " a,asset_types b,asset c,asset_details d where b.id=a.asset_type_id and b.type_name=?" +
+//     "and  c.asset_type_id=b.id and d.asset_id=c.id and d.attribute_id=a.id order by d.asset_id,d.attribute_id";
+//   var hsnCodeQuery =
+//     "select distinct b.hsnCode from asset_types a,asset b where a.id=b.asset_type_id and a.type_name=?";
+//   connection.query(qry, [type_name], (error, results, fields) => {
+//     if (error) {
+//       res.status(200).json({
+//         isSuccess: false,
+//         error: error
+//       });
+//     } else {
+//       x = results;
+//     }
+//   });
+//   connection.query(hsnCodeQuery, [type_name], (error, results, fields) => {
+//     if (error) {
+//       res.status(200).json({
+//         isSuccess: false,
+//         error: error
+//       });
+//     } else {
+//       hsn_result = results;
+//     }
+//   });
+//   connection.query(qry1, [type_name], (error, results, fields) => {
+//     res.status(201).json({
+//       isSuccess: true,
+//       dyna: results,
+//       static: x,
+//       hsnResult: hsn_result
+//     });
+//   });
+// });
 app.get(`/get_all_modifiable_values`, (req, res) => {
   var qry =
     "select b.* from asset_types a,asset b where a.id=b.asset_type_id and a.type_name=?";
@@ -277,24 +252,24 @@ app.get(`/change_status_on_return2`, (req, res) => {
     isSuccess: true
   });
 });
-app.get(`/get_asset_type_customer_name`, (req, res) => {
-  var qry =
-    "select distinct(d.CName), a.* from asset a,order_detail b,order_master c,customer d where a.asset_type_id=? and a.status=0 and a.id=b.asset_id and b.order_id=c.ID and d.Customer_Id=c.customer_id";
-  var asset_type_id = req.query.asset_type_id;
-  connection.query(qry, [asset_type_id], (error, results, fields) => {
-    if (error) {
-      res.status(501).json({
-        isSuccess: false,
-        error: error
-      });
-    } else {
-      res.status(200).json({
-        isSuccess: true,
-        results: results
-      });
-    }
-  });
-});
+// app.get(`/get_asset_type_customer_name`, (req, res) => {
+//   var qry =
+//     "select distinct(d.CName), a.* from asset a,order_detail b,order_master c,customer d where a.asset_type_id=? and a.status=0 and a.id=b.asset_id and b.order_id=c.ID and d.Customer_Id=c.customer_id";
+//   var asset_type_id = req.query.asset_type_id;
+//   connection.query(qry, [asset_type_id], (error, results, fields) => {
+//     if (error) {
+//       res.status(501).json({
+//         isSuccess: false,
+//         error: error
+//       });
+//     } else {
+//       res.status(200).json({
+//         isSuccess: true,
+//         results: results
+//       });
+//     }
+//   });
+// });
 app.get(`/change_config_status`, (req, res) => {
   // console.log(req.query)
   var id = req.query.id;
@@ -336,24 +311,24 @@ app.get(`/get_asset_config`, (req, res) => {
     }
   });
 });
-app.get(`/in_damaged_stock`, (req, res) => {
-  var qry1 = "select * from asset where asset_type_id=? and status=?";
-  var status = req.query.status;
-  var id = req.query.id;
-  connection.query(qry1, [id, status], (error, results, fields) => {
-    if (error) {
-      res.status(501).json({
-        isSuccess: false,
-        error: error
-      });
-    } else {
-      res.status(200).json({
-        isSuccess: true,
-        results: results
-      });
-    }
-  });
-});
+// app.get(`/in_damaged_stock`, (req, res) => {
+//   var qry1 = "select * from asset where asset_type_id=? and status=?";
+//   var status = req.query.status;
+//   var id = req.query.id;
+//   connection.query(qry1, [id, status], (error, results, fields) => {
+//     if (error) {
+//       res.status(501).json({
+//         isSuccess: false,
+//         error: error
+//       });
+//     } else {
+//       res.status(200).json({
+//         isSuccess: true,
+//         results: results
+//       });
+//     }
+//   });
+// });
 app.get(`/damaged_assets`, (req, res) => {
   var qry = "select * from asset";
   connection.query(qry, (error, results, fields) => {
@@ -849,20 +824,20 @@ app.post(`/modify_asset_type`, (req, res) => {
   });
 });
 
-app.get(`/get_asset`, (req, res) => {
-  var qry = "select id,type_name from asset_types";
-  connection.query(qry, (error, results, fields) => {
-    if (!error) {
-      res.status(200).json({
-        results: results
-      });
-    } else {
-      res.status(200).json({
-        results: error
-      });
-    }
-  });
-});
+// app.get(`/get_asset`, (req, res) => {
+//   var qry = "select id,type_name from asset_types";
+//   connection.query(qry, (error, results, fields) => {
+//     if (!error) {
+//       res.status(200).json({
+//         results: results
+//       });
+//     } else {
+//       res.status(200).json({
+//         results: error
+//       });
+//     }
+//   });
+// });
 
 app.get(`/get_asset_type`, (req, res) => {
   var type_name = req.query.type_name;

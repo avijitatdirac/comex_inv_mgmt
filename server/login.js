@@ -1,20 +1,12 @@
 const express = require("express");
+const router = express.Router();
 const fs = require("fs");
 const { resolve } = require("path");
-const mysql = require("mysql");
-const router = express.Router();
+const connection = require("./connection");
 
 // List of endpoint used
 const CHECK_LOGIN = "/check_login";
 const LOGOUT = "/logout";
-
-//DB connection
-const connection = mysql.createConnection({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_SCHEMA
-});
 
 // default router, sends React's index.html,
 // so that React code can execute
