@@ -16,9 +16,7 @@ import Challan from "../components/Challan";
 import DatePicker from "react-datepicker";
 import { notify } from "../Classes";
 import { fetchAPI } from "../utility";
-
-var moment = require("moment");
-require("react-datepicker/dist/react-datepicker.css");
+import "react-datepicker/dist/react-datepicker.css";
 
 // branch options
 const paymentOptions = [
@@ -36,25 +34,25 @@ function getDescription(obj) {
   return `${str}`;
 }
 
-function getExtras(obj) {
-  if (obj.extras !== undefined) {
-    var extrasList = "\n + ";
+// function getExtras(obj) {
+//   if (obj.extras !== undefined) {
+//     var extrasList = "\n + ";
 
-    obj.extras.forEach(extra => {
-      extrasList = extrasList + "\n + " + extra.make;
-    });
-    return `${extrasList}`;
-  } else {
-    return undefined;
-  }
-}
+//     obj.extras.forEach(extra => {
+//       extrasList = extrasList + "\n + " + extra.make;
+//     });
+//     return `${extrasList}`;
+//   } else {
+//     return undefined;
+//   }
+// }
 
 // branch options
-const branchOptions = [
-  { key: "a", text: "Pune", value: "Pune" },
-  { key: "b", text: "Bangalore", value: "Bangalore" },
-  { key: "c", text: "Kolkata", value: "Kolkata" }
-];
+// const branchOptions = [
+//   { key: "a", text: "Pune", value: "Pune" },
+//   { key: "b", text: "Bangalore", value: "Bangalore" },
+//   { key: "c", text: "Kolkata", value: "Kolkata" }
+// ];
 
 const taxOptions = [
   { key: "a", text: "CGST/SGST", value: "CGST/SGST" },
@@ -131,7 +129,7 @@ class GenerateChallan extends React.Component {
   // In component will mount get all the customer details
   componentWillMount() {
     // fetch all customer details from database
-    fetch(`/get_customer`, { method: "GET" })
+    fetchAPI("/cust/get_customer", {})
       .then(r => r.json())
       .then(data => {
         var cl = [];
@@ -247,7 +245,7 @@ class GenerateChallan extends React.Component {
         Number(total) +
         Number(element.totalPrice !== undefined ? element.totalPrice : 0);
     });
-    this.state.netTotalAmount = total;
+    this.setState({ netTotalAmount: total });
     return `${total}`;
   };
 
@@ -261,7 +259,8 @@ class GenerateChallan extends React.Component {
           element.totalUnitPrice !== undefined ? element.totalUnitPrice : 0
         );
     });
-    this.state.netAmount = total;
+    // this.state.netAmount = total;
+    this.setState({ netAmount: total });
     //this.setState({netAmount:total})
     console.log("net amount=" + total);
     return `${total}`;
@@ -281,7 +280,8 @@ class GenerateChallan extends React.Component {
       total = total + l_gst;
       //total = (Number(total) + Number(element.gst!==undefined ? element.gst : 0)*Number(element.totalUnitPrice!==undefined ? element.totalUnitPrice : 0))/100;
       // *Number(element.totalUnitPrice!==undefined ? element.totalUnitPrice : 0)
-      this.state.netGst = total;
+      // this.state.netGst = total;
+      this.setState({ netGst: total });
     });
     return `${total}`;
   };
@@ -344,21 +344,12 @@ class GenerateChallan extends React.Component {
     // console.log('draft id: ', this.props.selectedDraftId)
     if (this.props.selectedDraftId !== undefined) {
       // modify the selected challan draft in database
-      fetch(
-        `/modify_challan_draft?id=${
-          this.props.selectedDraftId
-        }&challan_type=${challanType}&challan_description=${challanDescription}`,
-        {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            challan_details: challanDetails
-          })
-        }
-      )
+      fetchAPI("/challan/modify_challan_draft", {
+        id: this.props.selectedDraftId,
+        challan_type: challanType,
+        challan_description: challanDescription,
+        challan_details: challanDetails
+      })
         .then(r => r.json())
         .then(data => {
           if (data.isSuccess) {
@@ -374,19 +365,11 @@ class GenerateChallan extends React.Component {
         });
     } else {
       // insert the challan draft in database
-      fetch(
-        `/insert_challan_draft?challan_type=${challanType}&challan_description=${challanDescription}`,
-        {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            challan_details: challanDetails
-          })
-        }
-      )
+      fetchAPI("/challan/insert_challan_draft", {
+        challan_type: challanType,
+        challan_description: challanDescription,
+        challan_details: challanDetails
+      })
         .then(r => r.json())
         .then(data => {
           if (data.isSuccess) {
@@ -641,7 +624,7 @@ class GenerateChallan extends React.Component {
 
     var challanOptions = [{ key: "0", value: "0", text: "N/A" }];
     // get challans of this customer
-    fetch(`/get_challan?customer_id=${customerId}`, { method: "GET" })
+    fetchAPI("/challan/get_challan", { customer_id: customerId })
       .then(r => r.json())
       .then(data => {
         if (data.isSuccess) {
@@ -673,7 +656,6 @@ class GenerateChallan extends React.Component {
     var gstValue;
     var contactNumber1;
     var contactNumber2;
-    var contactPerson;
     var email1;
     var email2;
     var city;
@@ -682,15 +664,9 @@ class GenerateChallan extends React.Component {
     var pincode;
     var cid,
       customerId,
-      address,
-      gstValue,
       contactPerson1,
-      contactNumber1,
-      email1,
       contactPerson1Valid,
       contactPerson2,
-      contactNumber2,
-      email2,
       contactPerson2Valid,
       contactPerson3,
       contactNumber3,
@@ -703,11 +679,7 @@ class GenerateChallan extends React.Component {
       isMain,
       isValid,
       createdDate,
-      updatedDate,
-      sez,
-      city,
-      state,
-      pincode;
+      updatedDate;
 
     // get customer
     this.state.customerList.forEach(customer => {
@@ -835,8 +807,8 @@ class GenerateChallan extends React.Component {
       } else {
         var totalUnitPrice =
           item.totalUnitPrice !== undefined ? item.totalUnitPrice : 0;
-        var taxType = this.state.selectedTaxType;
-        var l_gst = (Number(event.target.value) * Number(totalUnitPrice)) / 100;
+        // var taxType = this.state.selectedTaxType;
+        // var l_gst = (Number(event.target.value) * Number(totalUnitPrice)) / 100;
         var total =
           Number(totalUnitPrice) +
           (Number(event.target.value) * Number(totalUnitPrice)) / 100;

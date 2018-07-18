@@ -139,7 +139,7 @@ class ReturnAssets extends Component {
   componentWillMount() {
     // fetch all customer details from database
     // fetch all customer details from database
-    fetch(`/get_customer`, { method: "GET" })
+    fetchAPI("/cust/get_customer", {})
       .then(r => r.json())
       .then(data => {
         //console.log(data)
@@ -177,7 +177,7 @@ class ReturnAssets extends Component {
       })
       .catch(err => console.log(err));
 
-    fetch(`/get_asset`, { method: "GET" })
+    fetchAPI("/asset/get_asset", {})
       .then(r => r.json())
       .then(data => {
         // parsing json data (need to verify later)
@@ -227,7 +227,7 @@ class ReturnAssets extends Component {
   };
 
   callModifiedData = () => {
-    fetchAPI("/asset/get_asset_config", {})
+    fetchAPI("/config/get_asset_config", {})
       .then(r => r.json())
       .then(data => {
         //console.log('all assets')
@@ -332,19 +332,20 @@ class ReturnAssets extends Component {
         var dynadata = data.results;
         // console.log(dynadata)
         for (var i = 0; i < dynadata.length; i++) {
+          let madate = "";
+          let purdate = "";
           if (
             dynadata[i].order_date === "0000-00-00 00:00:00" ||
             dynadata[i].rental_end_date === "0000-00-00 00:00:00"
           ) {
-            if (dynadata[i].order_date === "0000-00-00 00:00:00")
-              var madate = "";
+            if (dynadata[i].order_date === "0000-00-00 00:00:00") madate = "";
             if (dynadata[i].rental_end_date === "0000-00-00 00:00:00")
-              var purdate = "";
+              purdate = "";
           } else {
-            var madate = moment(dynadata[i].order_date).format(
+            madate = moment(dynadata[i].order_date).format(
               "YYYY-MM-DD HH:mm:ss"
             );
-            var purdate = moment(dynadata[i].rental_end_date).format(
+            purdate = moment(dynadata[i].rental_end_date).format(
               "YYYY-MM-DD HH:mm:ss"
             );
           }

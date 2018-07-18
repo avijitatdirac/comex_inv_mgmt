@@ -119,7 +119,7 @@ class AssetAddition extends Component {
   }
 
   componentWillMount() {
-    fetch(`/get_customer`, { method: "GET" })
+    fetchAPI("/cust/get_customer", {})
       .then(r => r.json())
       .then(data => {
         //console.log(data)
@@ -149,7 +149,7 @@ class AssetAddition extends Component {
       })
       .catch(err => console.log(err));
 
-    fetch(`/get_customer_assets_for_addassetpage`, { method: "GET" })
+    fetchAPI("/order/get_customer_assets_for_addassetpage", {})
       .then(r => r.json())
       .then(data => {
         //console.log(data)
@@ -163,7 +163,7 @@ class AssetAddition extends Component {
         });
       });
 
-    fetch(`/get_out_of_stock_assets`, { method: "GET" })
+    fetchAPI("/asset/get_out_of_stock_assets", {})
       .then(r => r.json())
       .then(data => {
         //console.log(data)
@@ -171,8 +171,8 @@ class AssetAddition extends Component {
         var adlist = [];
         var sdetails = [];
 
-        var staticlen = data.static.length;
-        var dynalen = data.dynamic.length;
+        // var staticlen = data.static.length;
+        // var dynalen = data.dynamic.length;
         data.static.forEach(obj => {
           // alist=alist.concat({
           //     key: obj.id,
@@ -193,7 +193,7 @@ class AssetAddition extends Component {
       })
       .catch(err => console.log(err));
 
-    fetch(`/get_asset`, { method: "GET" })
+    fetchAPI("/asset/get_asset", {})
       .then(r => r.json())
       .then(data => {
         // parsing json data
@@ -219,7 +219,7 @@ class AssetAddition extends Component {
   populateAssetList = () => {
     console.log(this.state.customerAssetData);
     var arr = [];
-    var cn = 0;
+    // var cn = 0;
     this.state.customerAssetData.forEach(obj => {
       if (obj.customer_id === this.state.selectedCustomerId) {
         //console.log(obj.asset_id)
@@ -272,21 +272,26 @@ class AssetAddition extends Component {
       ad = ad.concat([arr[i].value]);
     }
 
+    let madate = "";
+    let purdate = "";
+    let procdate = "";
+    let todate = "";
+
     if (
       wed === "0000-00-00 00:00:00" ||
       pd === "0000-00-00 00:00:00" ||
       prd === "0000-00-00 00:00:00" ||
       tod === "0000-00-00 00:00:00"
     ) {
-      if (wed === "0000-00-00 00:00:00") var madate = "";
-      if (pd === "0000-00-00 00:00:00") var purdate = "";
-      if (prd === "0000-00-00 00:00:00") var procdate = "";
-      if (tod === "0000-00-00 00:00:00") var todate = "";
+      if (wed === "0000-00-00 00:00:00") madate = "";
+      if (pd === "0000-00-00 00:00:00") purdate = "";
+      if (prd === "0000-00-00 00:00:00") procdate = "";
+      if (tod === "0000-00-00 00:00:00") todate = "";
     } else {
-      var madate = moment(wed).format("YYYY-MM-DD HH:mm:ss");
-      var purdate = moment(pd).format("YYYY-MM-DD HH:mm:ss");
-      var procdate = moment(prd).format("YYYY-MM-DD HH:mm:ss");
-      var todate = moment(tod).format("YYYY-MM-DD HH:mm:ss");
+      madate = moment(wed).format("YYYY-MM-DD HH:mm:ss");
+      purdate = moment(pd).format("YYYY-MM-DD HH:mm:ss");
+      procdate = moment(prd).format("YYYY-MM-DD HH:mm:ss");
+      todate = moment(tod).format("YYYY-MM-DD HH:mm:ss");
     }
 
     this.setState({
@@ -405,6 +410,11 @@ class AssetAddition extends Component {
             };
           }
 
+          let madate = "";
+          let purdate = "";
+          let procdate = "";
+          let todate = "";
+
           if (
             staticr[i].warranty_end_date === "0000-00-00 00:00:00" ||
             staticr[i].purchase_date === "0000-00-00 00:00:00" ||
@@ -412,24 +422,24 @@ class AssetAddition extends Component {
             staticr[i].transfer_order_date === "0000-00-00 00:00:00"
           ) {
             if (staticr[i].warranty_end_date === "0000-00-00 00:00:00")
-              var madate = "";
+              madate = "";
             if (staticr[i].purchase_date === "0000-00-00 00:00:00")
-              var purdate = "";
+              purdate = "";
             if (staticr[i].procurement_date === "0000-00-00 00:00:00")
-              var procdate = "";
+              procdate = "";
             if (staticr[i].transfer_order_date === "0000-00-00 00:00:00")
-              var todate = "";
+              todate = "";
           } else {
-            var madate = moment(staticr[i].warranty_end_date).format(
+            madate = moment(staticr[i].warranty_end_date).format(
               "YYYY-MM-DD HH:mm:ss"
             );
-            var purdate = moment(staticr[i].purchase_date).format(
+            purdate = moment(staticr[i].purchase_date).format(
               "YYYY-MM-DD HH:mm:ss"
             );
-            var procdate = moment(staticr[i].procurement_date).format(
+            procdate = moment(staticr[i].procurement_date).format(
               "YYYY-MM-DD HH:mm:ss"
             );
-            var todate = moment(staticr[i].transfer_order_date).format(
+            todate = moment(staticr[i].transfer_order_date).format(
               "YYYY-MM-DD HH:mm:ss"
             );
           }
@@ -639,12 +649,10 @@ class AssetAddition extends Component {
 
   submitData = () => {
     // console.log(this.state.tempTableData[0].assetId)
-    fetch(
-      `/change_config_table?asset_id=${
-        this.state.tempTableData[0].assetId
-      }&child_asset_id=${this.state.assetId}`,
-      { method: "POST" }
-    )
+    fetchAPI("/config/change_config_table", {
+      asset_id: this.state.tempTableData[0].assetId,
+      child_asset_id: this.state.assetId
+    })
       .then(r => r.json())
       .then(data => {})
       .catch(err => console.log(err));

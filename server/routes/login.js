@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const fs = require("fs");
 const { resolve } = require("path");
-const connection = require("./connection");
+const connection = require("../connection");
 
 // List of endpoint used
 const CHECK_LOGIN = "/check_login";
@@ -12,7 +12,7 @@ const LOGOUT = "/logout";
 // so that React code can execute
 router.get("/", (req, res) => {
   let indexHtml = fs.readFileSync(
-    resolve(__dirname + "/../build/index.html"),
+    resolve(__dirname + "/../../build/index.html"),
     "utf8"
   );
   res.status(200).send(indexHtml);

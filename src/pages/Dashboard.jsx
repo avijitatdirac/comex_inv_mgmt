@@ -1,4 +1,3 @@
-import Moment from "react-moment";
 import React, { Component } from "react";
 import {
   Container,
@@ -214,7 +213,7 @@ class Dashboard extends Component {
       dimmerActive: true
     });
     // API CALL: get the details of all the assets of this asset type along with their customer (when rented)
-    fetchAPI("/assest/get_asset_type_customer_name", {
+    fetchAPI("/asset/get_asset_type_customer_name", {
       asset_type_id: this.state.allAssetTypes[idx].id
     })
       .then(result => result.json())
@@ -438,7 +437,7 @@ class Dashboard extends Component {
             {/* </div> */}
           </Dimmer.Dimmable>
         );
-        break;
+      // break;
 
       case componentRender.OUT_STOCK_DTLS:
         // console.log('rendering out of stock')
@@ -459,7 +458,7 @@ class Dashboard extends Component {
             </div>
           </Dimmer.Dimmable>
         );
-        break;
+      // break;
       case componentRender.IN_STOCK_DTLS:
         // console.log('rendering in stock')
         return (
@@ -477,7 +476,7 @@ class Dashboard extends Component {
             </div>
           </Dimmer.Dimmable>
         );
-        break;
+      // break;
 
       case componentRender.DAMAGED_STOCK_DTLS:
         // console.log('rendering in stock')
@@ -496,7 +495,7 @@ class Dashboard extends Component {
             </div>
           </Dimmer.Dimmable>
         );
-        break;
+      // break;
       case componentRender.CUSTOMER_ORDER_DTLS:
         return (
           <Dimmer.Dimmable as={Segment} dimmed={dimmerActive}>
@@ -513,7 +512,7 @@ class Dashboard extends Component {
             </div>
           </Dimmer.Dimmable>
         );
-        break;
+      // break;
       default:
         break;
     }
@@ -1063,7 +1062,7 @@ class Dashboard extends Component {
                       <Table.Row
                         style={{ cursor: "pointer" }}
                         onClick={this.assetOnClick.bind(this, asset.id)}
-                        active={asset.id == this.state.selectedAssetId}
+                        active={asset.id === this.state.selectedAssetId}
                       >
                         <Table.Cell>​​{asset.make}</Table.Cell>
                         <Table.Cell>​​{asset.serial_no}</Table.Cell>
@@ -1271,18 +1270,18 @@ class Dashboard extends Component {
   };
 }
 
-{
-  /* <Table.Footer fullWidth>
-<Table.Row>
-  <Table.HeaderCell />
-  <Table.HeaderCell colSpan='4'>
-    <Button floated='right' icon labelPosition='left' primary size='small'>
-      <Icon name='user' /> Add User
-    </Button>
-    <Button size='small'>Approve</Button>
-    <Button disabled size='small'>Approve All</Button>
-  </Table.HeaderCell>
-</Table.Row>
-</Table.Footer> */
-}
+// {
+//   /* <Table.Footer fullWidth>
+// <Table.Row>
+//   <Table.HeaderCell />
+//   <Table.HeaderCell colSpan='4'>
+//     <Button floated='right' icon labelPosition='left' primary size='small'>
+//       <Icon name='user' /> Add User
+//     </Button>
+//     <Button size='small'>Approve</Button>
+//     <Button disabled size='small'>Approve All</Button>
+//   </Table.HeaderCell>
+// </Table.Row>
+// </Table.Footer> */
+// }
 export default Dashboard;

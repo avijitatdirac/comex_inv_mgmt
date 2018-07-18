@@ -36,14 +36,14 @@ class Login extends Component {
   handleChange(e) {
     const { name, value } = e.target;
     this.setState({ [name]: value });
-    if (name == "username" && name.length > 0) {
+    if (name === "username" && name.length > 0) {
       this.setState({
         usernameError: false,
         usernameErrorText: "",
         successText: ""
       });
     }
-    if (name == "password" && name.length > 0) {
+    if (name === "password" && name.length > 0) {
       this.setState({
         passwordError: false,
         passwordErrorText: "",
@@ -133,9 +133,8 @@ class Login extends Component {
   }
 
   render() {
-    const { from } = { from: { pathname: "/" } };
+    // const { from } = { from: { pathname: "/" } };
     const {
-      redirectToReferrerm,
       usernameError,
       passwordError,
       submitted,

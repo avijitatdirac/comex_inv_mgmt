@@ -1,9 +1,6 @@
 import React from 'react';
-import Tab, { Container, Grid, Label, Segment, Header, Divider, Table, Button, Icon } from 'semantic-ui-react';
-
+import { Container, Grid, Header, Table, Button, Icon } from 'semantic-ui-react';
 import ReactToPrint from 'react-to-print';
-import PropTypes from 'prop-types';
-var moment = require('moment');
 
 class ComponentToPrint extends React.Component {
 	constructor(props) {

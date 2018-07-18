@@ -1,13 +1,5 @@
 import React, { Component } from "react";
-import {
-  Form,
-  Icon,
-  Button,
-  Segment,
-  Divider,
-  Input,
-  Table
-} from "semantic-ui-react";
+import { Segment, Table } from "semantic-ui-react";
 import GenerateChallan from "./GenerateChallan";
 import { fetchAPI } from "../utility";
 

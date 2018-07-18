@@ -1,6 +1,58 @@
 const express = require("express");
 const router = express.Router();
-const connection = require("./connection");
+const connection = require("../connection");
+
+router.post("/get_asset_config", (req, res) => {
+  var qry1 =
+    "select b.*,a.serial_no from asset a,asset_config b where a.id=b.asset_id and b.status=1 order by b.id";
+  var qry2 =
+    "select a.serial_no from asset a,asset_config b where a.id=b.child_asset_id and b.status=1 order by b.id";
+  var x;
+  connection.query(qry1, (error, results, fields) => {
+    if (error) {
+      res.status(501).json({
+        isSuccess: false,
+        error: error
+      });
+      return;
+    } else {
+      x = results;
+      connection.query(qry2, (error, results, fields) => {
+        res.json({
+          asset_config_id: x,
+          asset_config_child: results
+        });
+      });
+    }
+  });
+});
+
+router.post("/change_config_table", (req, res) => {
+  var asset_id = req.body.asset_id;
+  var child_asset_id = req.body.child_asset_id;
+
+  var qry = `insert into asset_config
+        (asset_id,child_asset_id,create_timestamp,update_timestamp,parent_asset_id,status)
+        values
+        (?,?,null,null,null,1)`;
+
+  connection.query(
+    qry,
+    [asset_id, child_asset_id],
+    (error, results, response) => {
+      if (error) {
+        res.status(501).json({
+          isSuccess: false,
+          error: error
+        });
+      } else {
+        res.status(200).json({
+          isSuccess: true
+        });
+      }
+    }
+  );
+});
 
 router.post("/change_config_table_on_add", (req, res) => {
   var qry = `insert into asset_config

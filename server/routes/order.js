@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const connection = require("./connection");
+const connection = require("../connection");
 
 router.post("/order_create", (req, res) => {
   var jsonData = req.body.data;
@@ -135,6 +135,26 @@ router.post("/get_customer_order_details", (req, res) => {
         results: results
       });
     }
+  });
+});
+
+router.post("/get_customer_assets_for_addassetpage", (req, res) => {
+  var qry1 = `select a.*,b.*,c.serial_no from order_master a,order_detail b,asset c where a.ID=b.order_id and c.id = b.asset_id`;
+
+  connection.query(qry1, (error, results, fields) => {
+    if (error) {
+      res.status(501).json({
+        isSuccess: false,
+        error: error
+      });
+      return;
+    } else {
+    }
+
+    res.status(200).json({
+      isSuccess: true,
+      results: results
+    });
   });
 });
 

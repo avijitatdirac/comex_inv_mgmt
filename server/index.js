@@ -10,7 +10,6 @@ const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const fs = require("fs");
 const { resolve } = require("path");
-const connection = require("./connection");
 
 // create express app
 const app = express();
@@ -22,32 +21,21 @@ app.use(morgan("common"));
 // generate session
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "__ABCD__",
+    secret: process.env.SESSION_SECRET || "__DUMMY_SESSION_KEY__",
     resave: false,
     saveUninitialized: true,
     cookie: { maxAge: eval(process.env.COOKIE_MAX_AGE) }
   })
 );
 
-// import other modules
+// import router modules
 const auth = require("./authentication");
-const login = require("./login");
-const cust = require("./customer");
-const asset = require("./asset");
-const assetConfig = require("./config");
-const order = require("./order");
-const challan = require("./challan");
-
-/*
-* serves the index.html file without any session authentication 
-* index.html file is the root file for react 
-*  
-*/
-app.get("/", function(req, res) {
-  let indexHtml = fs.readFileSync(resolve("../build/index.html"), "utf8");
-  res.header("Content-Type", "text/html");
-  res.status(200).send(indexHtml);
-});
+const login = require("./routes/login");
+const cust = require("./routes/customer");
+const asset = require("./routes/asset");
+const assetConfig = require("./routes/config");
+const order = require("./routes/order");
+const challan = require("./routes/challan");
 
 /**
  * serve all static files without any session authentication
@@ -67,12 +55,50 @@ app.use(auth);
 
 /**
  * all router added after main authentication module
+ * so that all API request made will be validated against
+ * session information first in the main auth module
  */
 app.use("/cust", cust);
 app.use("/asset", asset);
 app.use("/config", assetConfig);
 app.use("/order", order);
 app.use("/challan", challan);
+
+/**
+ *
+ *
+ * serve React's index.html file from build folder
+ * browser request comes in for any url
+ *
+ *
+ */
+
+app.get("*", function(req, res) {
+  let indexHtml = fs.readFileSync(resolve("../build/index.html"), "utf8");
+  res.header("Content-Type", "text/html");
+  res.status(200).send(indexHtml);
+});
+
+/**
+ *
+ * start the server on the given PORT
+ *
+ */
+app.listen(PORT, () => console.log("server started on port " + PORT));
+
+/**
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
 
 // app.get(`/get_customer_roles`, (req, res) => {
 //   var qrGetRoles = "SELECT * FROM  customer_role";
@@ -744,91 +770,91 @@ app.use("/challan", challan);
 
 // API to insert more attributes into existing asset-type
 // usage /modify_asset_type?type_name=[type name]&attributes=[new attributes]
-app.post(`/modify_asset_type`, (req, res) => {
-  var type_name = req.query.type_name;
-  var attributes = req.query.attributes;
-  var jsonData = JSON.parse(attributes);
-  var length = jsonData.length;
+// app.post(`/modify_asset_type`, (req, res) => {
+//   var type_name = req.query.type_name;
+//   var attributes = req.query.attributes;
+//   var jsonData = JSON.parse(attributes);
+//   var length = jsonData.length;
 
-  // for false insertion
-  var assetIds = [];
-  var insAttribId = "";
+//   // for false insertion
+//   var assetIds = [];
+//   var insAttribId = "";
 
-  // console.log('type_name:', type_name)
-  var qry = `insert into asset_types_attributes(asset_type_id,attr_name,is_modifiable,is_mandatory,is_active,create_timestamp,update_timestamp,is_printable) values ((select id from asset_types where type_name = ?),?,?,?,true,null,null,?)`;
+//   // console.log('type_name:', type_name)
+//   var qry = `insert into asset_types_attributes(asset_type_id,attr_name,is_modifiable,is_mandatory,is_active,create_timestamp,update_timestamp,is_printable) values ((select id from asset_types where type_name = ?),?,?,?,true,null,null,?)`;
 
-  // fetch all the asset ids for which modification is required
-  var qGetAssetIds = `SELECT id FROM asset where asset_type_id = (select id from asset_types where type_name = ?)`;
+//   // fetch all the asset ids for which modification is required
+//   var qGetAssetIds = `SELECT id FROM asset where asset_type_id = (select id from asset_types where type_name = ?)`;
 
-  // get the newly inserted attribute-id
-  var qGetAttribId = `SELECT max(id) as attribute_id FROM asset_types_attributes`;
+//   // get the newly inserted attribute-id
+//   var qGetAttribId = `SELECT max(id) as attribute_id FROM asset_types_attributes`;
 
-  // insert null data into the newly inserted attribute field of all assets with the changed asset-type
-  var qInsertAssetDetails = `insert into asset_details (asset_id, attribute_id, attribute_value) values (?,?,?)`;
+//   // insert null data into the newly inserted attribute field of all assets with the changed asset-type
+//   var qInsertAssetDetails = `insert into asset_details (asset_id, attribute_id, attribute_value) values (?,?,?)`;
 
-  connection.beginTransaction(function(err) {
-    if (err) {
-      throw err;
-    }
+//   connection.beginTransaction(function(err) {
+//     if (err) {
+//       throw err;
+//     }
 
-    // insert new attributes
-    for (var i = 0; i < length; i++) {
-      connection.query(qry, [
-        type_name,
-        jsonData[i].name,
-        jsonData[i].isMandatory,
-        jsonData[i].isModifiable,
-        jsonData[i].isPrintable
-      ]);
-      // console.log(`insert into asset_types_attributes(asset_type_id,attr_name,is_modifiable,is_mandatory,is_active,create_timestamp,update_timestamp) values ((select id from asset_types where type_name = ${type_name}),${jsonData[i].name},${jsonData[i].isMandatory},${jsonData[i].isModifiable},true,null,null)`)
-      // insert here
+//     // insert new attributes
+//     for (var i = 0; i < length; i++) {
+//       connection.query(qry, [
+//         type_name,
+//         jsonData[i].name,
+//         jsonData[i].isMandatory,
+//         jsonData[i].isModifiable,
+//         jsonData[i].isPrintable
+//       ]);
+//       // console.log(`insert into asset_types_attributes(asset_type_id,attr_name,is_modifiable,is_mandatory,is_active,create_timestamp,update_timestamp) values ((select id from asset_types where type_name = ${type_name}),${jsonData[i].name},${jsonData[i].isMandatory},${jsonData[i].isModifiable},true,null,null)`)
+//       // insert here
 
-      // getting attribute id
-      connection.query(qGetAttribId, (error, results, fields) => {
-        if (!error) {
-          insAttribId = results[0].attribute_id;
-        } else {
-          res.status(200).json({
-            results: error
-          });
-        }
-      });
-      // getting asset ids
-      connection.query(qGetAssetIds, [type_name], (error, results, fields) => {
-        if (!error) {
-          // query success, we obtained the asset id fields
+//       // getting attribute id
+//       connection.query(qGetAttribId, (error, results, fields) => {
+//         if (!error) {
+//           insAttribId = results[0].attribute_id;
+//         } else {
+//           res.status(200).json({
+//             results: error
+//           });
+//         }
+//       });
+//       // getting asset ids
+//       connection.query(qGetAssetIds, [type_name], (error, results, fields) => {
+//         if (!error) {
+//           // query success, we obtained the asset id fields
 
-          assetIds = results;
-          assetIds.forEach(element => {
-            // insert black attribute for each asset in this asset-type
-            connection.query(qInsertAssetDetails, [
-              element.id,
-              insAttribId,
-              ""
-            ]);
-          });
-        } else {
-          res.status(200).json({
-            results: error
-          });
-        }
-      });
-    }
+//           assetIds = results;
+//           assetIds.forEach(element => {
+//             // insert black attribute for each asset in this asset-type
+//             connection.query(qInsertAssetDetails, [
+//               element.id,
+//               insAttribId,
+//               ""
+//             ]);
+//           });
+//         } else {
+//           res.status(200).json({
+//             results: error
+//           });
+//         }
+//       });
+//     }
 
-    connection.commit(function(err) {
-      if (err) {
-        res.status(501).json({
-          isSuccess: "false"
-        });
-        return connection.rollback();
-      } else if (!err) {
-        res.status(200).json({
-          isSuccess: "true"
-        });
-      }
-    });
-  });
-});
+//     connection.commit(function(err) {
+//       if (err) {
+//         res.status(501).json({
+//           isSuccess: "false"
+//         });
+//         return connection.rollback();
+//       } else if (!err) {
+//         res.status(200).json({
+//           isSuccess: "true"
+//         });
+//       }
+//     });
+//   });
+// });
 
 // app.get(`/get_asset`, (req, res) => {
 //   var qry = "select id,type_name from asset_types";
@@ -845,264 +871,264 @@ app.post(`/modify_asset_type`, (req, res) => {
 //   });
 // });
 
-app.get(`/get_asset_type`, (req, res) => {
-  var type_name = req.query.type_name;
-  var qry =
-    "select id,asset_type_id,attr_name,is_modifiable,is_mandatory,is_printable from asset_types_attributes where asset_type_id=(select id from asset_types where type_name=?)";
-  connection.query(qry, [type_name], (error, results, fields) => {
-    res.status(200).json({
-      results: results
-    });
-  });
-});
-app.get(`/get_asset_config_on_id`, (req, res) => {
-  var id = req.query.id;
-  var qry =
-    "select a.make,a.serial_no,b.* from asset a,asset_config b where a.id=b.asset_id and b.asset_id=?";
-  connection.query(qry, [id], (error, results, fields) => {
-    if (error) {
-      res.status(501).json({
-        error: error,
-        isSuccess: false
-      });
-    } else {
-      res.status(200).json({
-        results: results,
-        isSuccess: true
-      });
-    }
-  });
-});
-app.get(`/insert_customer2`, (req, res) => {
-  var qry =
-    "insert into customer(CName,Contact_No,Contact_person,Email,Address,Address1,Address2,City,State,Pincode,created_date,updated_date) values(?,?,?,?,?,?,?,?,?,?,null,null)";
-  //var qry1="select Customer_Id from im_customer where im_customer_Id=(SELECT MAX(Customer_Id) from im_customer)"
-  var qry2 = `insert into customer_financial(Customer_Detail_Id,Account_Number,IFSC_Code,Bank_Name,Account_Name,GST_Details,HSN_Code,SAC_Code,created_date,updated_date) values ((select Customer_Id from customer where Customer_Id=(SELECT MAX(Customer_Id) from customer)),?,?,?,?,?,?,?,null,null)`;
-  var qry3 = `insert into customer_location_detail(Customer_Id,Location,Contact_No,Contact_person,Email,Address,Address1,Address2,City,State,Pincode,Bill_To_Address,Bill_To_Address1,Bill_To_Address2,Ship_To_Address,Ship_To_Address1,Ship_To_Address2,created_date,updated_date) values((select Customer_Id from customer where Customer_Id=(SELECT MAX(Customer_Id) from customer)),?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,null,null)`;
-  var cname = req.query.CName;
-  var contact_no = req.query.Contact_No;
-  var contact_person = req.query.Contact_person;
-  var email = req.query.Email;
-  var address = req.query.Address;
-  var address1 = req.query.Address1;
-  var address2 = req.query.Address2;
-  var city = req.query.City;
-  var state = req.query.State;
-  var pincode = req.query.Pincode;
-  var account_Number = req.query.accountNumber;
-  var iFSC_Code = req.query.ifscCode;
-  var bank_Name = req.query.bankName;
-  var account_Name = req.query.accountName;
-  var gST_Details = req.query.gstDetails;
-  var hSN_Code = req.query.hsnCode;
-  var sAC_Code = req.query.sacCode;
-  var location = req.query.location;
-  var bill_To_Address = req.query.billToAddress;
-  var bill_To_Address1 = req.query.billToAddress1;
-  var bill_To_Address2 = req.query.billToAddress2;
-  var ship_To_Address = req.query.shipToAddress;
-  var ship_To_Address1 = req.query.shipToAddress1;
-  var ship_To_Address2 = req.query.shipToAddress2;
-  connection.beginTransaction(function(err) {
-    if (err) {
-      throw err;
-    }
-    connection.query(
-      qry,
-      [
-        cname,
-        contact_no,
-        contact_person,
-        email,
-        address,
-        address1,
-        address2,
-        city,
-        state,
-        pincode
-      ],
-      (error, results, fields) => {
-        if (error) {
-          if (error.errno === 1062) {
-            res.json({ isError: true, message: "Email id already Exists" });
-            return;
-          }
-        } else {
-          res.status(200).json({ isError: false });
-          connection.query(qry2, [
-            account_Number,
-            iFSC_Code,
-            bank_Name,
-            account_Name,
-            gST_Details,
-            hSN_Code,
-            sAC_Code
-          ]);
-          connection.query(qry3, [
-            location,
-            contact_no,
-            contact_person,
-            email,
-            address,
-            address1,
-            address2,
-            city,
-            state,
-            pincode,
-            bill_To_Address,
-            bill_To_Address1,
-            bill_To_Address2,
-            ship_To_Address,
-            ship_To_Address1,
-            ship_To_Address2
-          ]);
-        }
-      }
-    );
-    connection.commit(function(err) {
-      if (err) {
-        return connection.rollback();
-      }
-    });
-  });
-});
+// app.get(`/get_asset_type`, (req, res) => {
+//   var type_name = req.query.type_name;
+//   var qry =
+//     "select id,asset_type_id,attr_name,is_modifiable,is_mandatory,is_printable from asset_types_attributes where asset_type_id=(select id from asset_types where type_name=?)";
+//   connection.query(qry, [type_name], (error, results, fields) => {
+//     res.status(200).json({
+//       results: results
+//     });
+//   });
+// });
+// app.get(`/get_asset_config_on_id`, (req, res) => {
+//   var id = req.query.id;
+//   var qry =
+//     "select a.make,a.serial_no,b.* from asset a,asset_config b where a.id=b.asset_id and b.asset_id=?";
+//   connection.query(qry, [id], (error, results, fields) => {
+//     if (error) {
+//       res.status(501).json({
+//         error: error,
+//         isSuccess: false
+//       });
+//     } else {
+//       res.status(200).json({
+//         results: results,
+//         isSuccess: true
+//       });
+//     }
+//   });
+// });
+// app.get(`/insert_customer2`, (req, res) => {
+//   var qry =
+//     "insert into customer(CName,Contact_No,Contact_person,Email,Address,Address1,Address2,City,State,Pincode,created_date,updated_date) values(?,?,?,?,?,?,?,?,?,?,null,null)";
+//   //var qry1="select Customer_Id from im_customer where im_customer_Id=(SELECT MAX(Customer_Id) from im_customer)"
+//   var qry2 = `insert into customer_financial(Customer_Detail_Id,Account_Number,IFSC_Code,Bank_Name,Account_Name,GST_Details,HSN_Code,SAC_Code,created_date,updated_date) values ((select Customer_Id from customer where Customer_Id=(SELECT MAX(Customer_Id) from customer)),?,?,?,?,?,?,?,null,null)`;
+//   var qry3 = `insert into customer_location_detail(Customer_Id,Location,Contact_No,Contact_person,Email,Address,Address1,Address2,City,State,Pincode,Bill_To_Address,Bill_To_Address1,Bill_To_Address2,Ship_To_Address,Ship_To_Address1,Ship_To_Address2,created_date,updated_date) values((select Customer_Id from customer where Customer_Id=(SELECT MAX(Customer_Id) from customer)),?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,null,null)`;
+//   var cname = req.query.CName;
+//   var contact_no = req.query.Contact_No;
+//   var contact_person = req.query.Contact_person;
+//   var email = req.query.Email;
+//   var address = req.query.Address;
+//   var address1 = req.query.Address1;
+//   var address2 = req.query.Address2;
+//   var city = req.query.City;
+//   var state = req.query.State;
+//   var pincode = req.query.Pincode;
+//   var account_Number = req.query.accountNumber;
+//   var iFSC_Code = req.query.ifscCode;
+//   var bank_Name = req.query.bankName;
+//   var account_Name = req.query.accountName;
+//   var gST_Details = req.query.gstDetails;
+//   var hSN_Code = req.query.hsnCode;
+//   var sAC_Code = req.query.sacCode;
+//   var location = req.query.location;
+//   var bill_To_Address = req.query.billToAddress;
+//   var bill_To_Address1 = req.query.billToAddress1;
+//   var bill_To_Address2 = req.query.billToAddress2;
+//   var ship_To_Address = req.query.shipToAddress;
+//   var ship_To_Address1 = req.query.shipToAddress1;
+//   var ship_To_Address2 = req.query.shipToAddress2;
+//   connection.beginTransaction(function(err) {
+//     if (err) {
+//       throw err;
+//     }
+//     connection.query(
+//       qry,
+//       [
+//         cname,
+//         contact_no,
+//         contact_person,
+//         email,
+//         address,
+//         address1,
+//         address2,
+//         city,
+//         state,
+//         pincode
+//       ],
+//       (error, results, fields) => {
+//         if (error) {
+//           if (error.errno === 1062) {
+//             res.json({ isError: true, message: "Email id already Exists" });
+//             return;
+//           }
+//         } else {
+//           res.status(200).json({ isError: false });
+//           connection.query(qry2, [
+//             account_Number,
+//             iFSC_Code,
+//             bank_Name,
+//             account_Name,
+//             gST_Details,
+//             hSN_Code,
+//             sAC_Code
+//           ]);
+//           connection.query(qry3, [
+//             location,
+//             contact_no,
+//             contact_person,
+//             email,
+//             address,
+//             address1,
+//             address2,
+//             city,
+//             state,
+//             pincode,
+//             bill_To_Address,
+//             bill_To_Address1,
+//             bill_To_Address2,
+//             ship_To_Address,
+//             ship_To_Address1,
+//             ship_To_Address2
+//           ]);
+//         }
+//       }
+//     );
+//     connection.commit(function(err) {
+//       if (err) {
+//         return connection.rollback();
+//       }
+//     });
+//   });
+// });
 
-app.get("/", (req, res) => {
-  res.send("Created by Avilash, Meghnad, Ritaraj");
-});
-app.get(`/get_all`, (req, res) => {
-  var qry = "select * from Customer";
-  connection.query(qry, (error, results, fields) => {
-    if (error) {
-      res.status(503).json({
-        message: error,
-        isError: "true"
-      });
-    }
+// app.get("/", (req, res) => {
+//   res.send("Created by Avilash, Meghnad, Ritaraj");
+// });
+// app.get(`/get_all`, (req, res) => {
+//   var qry = "select * from Customer";
+//   connection.query(qry, (error, results, fields) => {
+//     if (error) {
+//       res.status(503).json({
+//         message: error,
+//         isError: "true"
+//       });
+//     }
 
-    if (results && results.length > 0) {
-      var cname = results[0].CName;
-      response.status(200).json({
-        message: "success",
-        cname: cname
-      });
-    }
-  });
-});
+//     if (results && results.length > 0) {
+//       var cname = results[0].CName;
+//       response.status(200).json({
+//         message: "success",
+//         cname: cname
+//       });
+//     }
+//   });
+// });
 
-app.post(`/insert_customer`, (req, res) => {
-  // get all data from request
-  var customer_name = req.query.customer_name;
-  //var city          = req.query.city
-  //var state         = req.query.state
-  var cin_number = req.query.cin;
-  var pan_number = req.query.pan_number;
-  var comments = req.query.comments;
+// app.post(`/insert_customer`, (req, res) => {
+//   // get all data from request
+//   var customer_name = req.query.customer_name;
+//   //var city          = req.query.city
+//   //var state         = req.query.state
+//   var cin_number = req.query.cin;
+//   var pan_number = req.query.pan_number;
+//   var comments = req.query.comments;
 
-  // get address (dynamic)
+//   // get address (dynamic)
 
-  var address = req.query.address;
-  var jsonData = JSON.parse(address);
-  var length = jsonData.length;
+//   var address = req.query.address;
+//   var jsonData = JSON.parse(address);
+//   var length = jsonData.length;
 
-  // define sql queries
+//   // define sql queries
 
-  var qrInsCustStatic =
-    "insert into customer (CName, updated_date, created_date, Previously_Known_As, Pan_No, Comments,CIN) values(?,null,null,null,?,?,?)";
+//   var qrInsCustStatic =
+//     "insert into customer (CName, updated_date, created_date, Previously_Known_As, Pan_No, Comments,CIN) values(?,null,null,null,?,?,?)";
 
-  var qrInsCustDynamic = `
-    insert into customer_location_master (
-        Customer_Id,Address,GST_Value,
-        Contact_Person_1,Contact_Number_1,Email_1, Contact_Person_1_Valid,Contact_Person_1_role,
-        Contact_Person_2,Contact_Number_2,Email_2, Contact_Person_2_Valid,Contact_Person_2_role,
-        Contact_Person_3,Contact_Number_3,Email_3, Contact_Person_3_Valid,Contact_Person_3_role,
-        Contact_Person_4,Contact_Number_4,Email_4, Contact_Person_4_Valid,Contact_Person_4_role,
-        Is_Main,Is_Valid,created_date,updated_date,SEZ,City,State,Pincode)
-    values
-    ((SELECT max(Customer_Id) FROM customer),?,?,
-    ?,?,?,1,?,
-    ?,?,?,1,?,
-    ?,?,?,1,?,
-    ?,?,?,1,?,
-    ?,1,null,null,?,?,?,?)`;
-  // start transaction
-  connection.beginTransaction(function(err) {
-    if (err) {
-      throw err;
-    }
+//   var qrInsCustDynamic = `
+//     insert into customer_location_master (
+//         Customer_Id,Address,GST_Value,
+//         Contact_Person_1,Contact_Number_1,Email_1, Contact_Person_1_Valid,Contact_Person_1_role,
+//         Contact_Person_2,Contact_Number_2,Email_2, Contact_Person_2_Valid,Contact_Person_2_role,
+//         Contact_Person_3,Contact_Number_3,Email_3, Contact_Person_3_Valid,Contact_Person_3_role,
+//         Contact_Person_4,Contact_Number_4,Email_4, Contact_Person_4_Valid,Contact_Person_4_role,
+//         Is_Main,Is_Valid,created_date,updated_date,SEZ,City,State,Pincode)
+//     values
+//     ((SELECT max(Customer_Id) FROM customer),?,?,
+//     ?,?,?,1,?,
+//     ?,?,?,1,?,
+//     ?,?,?,1,?,
+//     ?,?,?,1,?,
+//     ?,1,null,null,?,?,?,?)`;
+//   // start transaction
+//   connection.beginTransaction(function(err) {
+//     if (err) {
+//       throw err;
+//     }
 
-    // running first query (static data)
-    connection.query(
-      qrInsCustStatic,
-      [customer_name, pan_number, comments, cin_number],
-      (error, results, fields) => {
-        if (!error) {
-          // running second query (dynamic) for each address
-          for (i = 0; i < length; i++) {
-            connection.query(
-              qrInsCustDynamic,
-              [
-                jsonData[i].Address,
-                jsonData[i].GSTValue,
+//     // running first query (static data)
+//     connection.query(
+//       qrInsCustStatic,
+//       [customer_name, pan_number, comments, cin_number],
+//       (error, results, fields) => {
+//         if (!error) {
+//           // running second query (dynamic) for each address
+//           for (i = 0; i < length; i++) {
+//             connection.query(
+//               qrInsCustDynamic,
+//               [
+//                 jsonData[i].Address,
+//                 jsonData[i].GSTValue,
 
-                jsonData[i].ContactPerson1,
-                jsonData[i].ContactNumber1,
-                jsonData[i].Email1,
-                jsonData[i].ContactRole1,
+//                 jsonData[i].ContactPerson1,
+//                 jsonData[i].ContactNumber1,
+//                 jsonData[i].Email1,
+//                 jsonData[i].ContactRole1,
 
-                jsonData[i].ContactPerson2,
-                jsonData[i].ContactNumber2,
-                jsonData[i].Email2,
-                jsonData[i].ContactRole2,
+//                 jsonData[i].ContactPerson2,
+//                 jsonData[i].ContactNumber2,
+//                 jsonData[i].Email2,
+//                 jsonData[i].ContactRole2,
 
-                jsonData[i].ContactPerson3,
-                jsonData[i].ContactNumber3,
-                jsonData[i].Email3,
-                jsonData[i].ContactRole3,
+//                 jsonData[i].ContactPerson3,
+//                 jsonData[i].ContactNumber3,
+//                 jsonData[i].Email3,
+//                 jsonData[i].ContactRole3,
 
-                jsonData[i].ContactPerson4,
-                jsonData[i].ContactNumber4,
-                jsonData[i].Email4,
-                jsonData[i].ContactRole4,
+//                 jsonData[i].ContactPerson4,
+//                 jsonData[i].ContactNumber4,
+//                 jsonData[i].Email4,
+//                 jsonData[i].ContactRole4,
 
-                jsonData[i].isMain,
-                jsonData[i].SEZ,
-                jsonData[i].City,
-                jsonData[i].State,
-                jsonData[i].Pincode
-              ],
-              (error, results, fields) => {
-                if (error) {
-                  return connection.rollback();
-                  return;
-                }
-              }
-            );
-          }
-        } else {
-          if (error) {
-            return connection.rollback();
-            return;
-          }
-        }
-      }
-    );
-    connection.commit(function(err) {
-      if (err) {
-        res.status(501).json({
-          isSuccess: false,
-          results: "failure"
-        });
-        return connection.rollback();
-      } else {
-        res.status(200).json({
-          isSuccess: true,
-          results: "success"
-        });
-      }
-    });
-  });
-});
+//                 jsonData[i].isMain,
+//                 jsonData[i].SEZ,
+//                 jsonData[i].City,
+//                 jsonData[i].State,
+//                 jsonData[i].Pincode
+//               ],
+//               (error, results, fields) => {
+//                 if (error) {
+//                   return connection.rollback();
+//                   return;
+//                 }
+//               }
+//             );
+//           }
+//         } else {
+//           if (error) {
+//             return connection.rollback();
+//             return;
+//           }
+//         }
+//       }
+//     );
+//     connection.commit(function(err) {
+//       if (err) {
+//         res.status(501).json({
+//           isSuccess: false,
+//           results: "failure"
+//         });
+//         return connection.rollback();
+//       } else {
+//         res.status(200).json({
+//           isSuccess: true,
+//           results: "success"
+//         });
+//       }
+//     });
+//   });
+// });
 // // customer modification API
 // app.get(`/modify_customer`, (req, res) => {
 //     var asset_id = req.query.asset_id
@@ -1127,486 +1153,486 @@ app.post(`/insert_customer`, (req, res) => {
 //     )
 // })
 
-app.post(`/modify_customer`, (req, res) => {
-  // get all data from request
-  var customerId = req.query.customerId;
-  var customer_name = req.query.customer_name;
-  var comments = req.query.comments;
-  var prevName = "";
-  // get address (dynamic)
+// app.post(`/modify_customer`, (req, res) => {
+//   // get all data from request
+//   var customerId = req.query.customerId;
+//   var customer_name = req.query.customer_name;
+//   var comments = req.query.comments;
+//   var prevName = "";
+//   // get address (dynamic)
 
-  var address = req.query.address;
-  var jsonData = JSON.parse(address);
-  var length = jsonData.length;
+//   var address = req.query.address;
+//   var jsonData = JSON.parse(address);
+//   var length = jsonData.length;
 
-  // console.log('jsondata: ',jsonData)
+//   // console.log('jsondata: ',jsonData)
 
-  // console.log('request is: ',req.query)
-  // define sql queries
-  // update customer set CName = 'Ritu 3', updated_date = null, Previously_Known_As = concat(Previously_Known_As, 'name'), Comments=concat(Comments,'comment 2') where Customer_Id=2
-  var qrGetPrevName = "select CName from customer where Customer_Id = ?";
-  var qrUpdateCust = `update customer set
-            CName = ?,
-            updated_date = null,
-            Previously_Known_As =?,
-            Comments=concat(coalesce(Comments, ''),' ',?)
-                where Customer_Id=?`;
+//   // console.log('request is: ',req.query)
+//   // define sql queries
+//   // update customer set CName = 'Ritu 3', updated_date = null, Previously_Known_As = concat(Previously_Known_As, 'name'), Comments=concat(Comments,'comment 2') where Customer_Id=2
+//   var qrGetPrevName = "select CName from customer where Customer_Id = ?";
+//   var qrUpdateCust = `update customer set
+//             CName = ?,
+//             updated_date = null,
+//             Previously_Known_As =?,
+//             Comments=concat(coalesce(Comments, ''),' ',?)
+//                 where Customer_Id=?`;
 
-  var qrUpdateCustDynamic = `update customer_location_master set
-            GST_Value=?,
-            Contact_Person_1=?,
-            Contact_Number_1=?,
-            Email_1=?,
-            Contact_Person_1_Valid = ?,
+//   var qrUpdateCustDynamic = `update customer_location_master set
+//             GST_Value=?,
+//             Contact_Person_1=?,
+//             Contact_Number_1=?,
+//             Email_1=?,
+//             Contact_Person_1_Valid = ?,
 
-            Contact_Person_2=?,
-            Contact_Number_2=?,
-            Email_2=?,
-            Contact_Person_2_Valid = ?,
+//             Contact_Person_2=?,
+//             Contact_Number_2=?,
+//             Email_2=?,
+//             Contact_Person_2_Valid = ?,
 
-            Contact_Person_3=?,
-            Contact_Number_3=?,
-            Email_3=?,
-            Contact_Person_3_Valid = ?,
+//             Contact_Person_3=?,
+//             Contact_Number_3=?,
+//             Email_3=?,
+//             Contact_Person_3_Valid = ?,
 
-            Contact_Person_4=?,
-            Contact_Number_4=?,
-            Email_4=?,
-            Contact_Person_4_Valid = ?,
-            Is_Main=?,
-            Is_Valid=?,
-            updated_date=null,
-            SEZ=?
-                where CID=?`;
-  var prevName = null;
-  // start transaction
-  connection.beginTransaction(function(err) {
-    if (err) {
-      throw err;
-    }
+//             Contact_Person_4=?,
+//             Contact_Number_4=?,
+//             Email_4=?,
+//             Contact_Person_4_Valid = ?,
+//             Is_Main=?,
+//             Is_Valid=?,
+//             updated_date=null,
+//             SEZ=?
+//                 where CID=?`;
+//   var prevName = null;
+//   // start transaction
+//   connection.beginTransaction(function(err) {
+//     if (err) {
+//       throw err;
+//     }
 
-    // first get customer id
-    connection.query(qrGetPrevName, [customerId], (error, results, fields) => {
-      // name retrieval successful
-      if (!error) {
-        if (
-          results &&
-          results.length > 0 &&
-          results[0].CName !== customer_name
-        ) {
-          prevName = results[0].CName;
-        }
-        // update the customer
-        connection.query(
-          qrUpdateCust,
-          [customer_name, prevName, comments, customerId],
-          (error, results, fields) => {
-            // customer updation successful
-            if (!error) {
-              // running second query (dynamic) for each address
-              for (var i = 0; i < jsonData.length; i++) {
-                connection.query(
-                  qrUpdateCustDynamic,
-                  [
-                    jsonData[i].GST_Value,
-                    jsonData[i].Contact_Person_1,
-                    jsonData[i].Contact_Number_1,
-                    jsonData[i].Email_1,
-                    jsonData[i].Contact_Person_1_Valid,
+//     // first get customer id
+//     connection.query(qrGetPrevName, [customerId], (error, results, fields) => {
+//       // name retrieval successful
+//       if (!error) {
+//         if (
+//           results &&
+//           results.length > 0 &&
+//           results[0].CName !== customer_name
+//         ) {
+//           prevName = results[0].CName;
+//         }
+//         // update the customer
+//         connection.query(
+//           qrUpdateCust,
+//           [customer_name, prevName, comments, customerId],
+//           (error, results, fields) => {
+//             // customer updation successful
+//             if (!error) {
+//               // running second query (dynamic) for each address
+//               for (var i = 0; i < jsonData.length; i++) {
+//                 connection.query(
+//                   qrUpdateCustDynamic,
+//                   [
+//                     jsonData[i].GST_Value,
+//                     jsonData[i].Contact_Person_1,
+//                     jsonData[i].Contact_Number_1,
+//                     jsonData[i].Email_1,
+//                     jsonData[i].Contact_Person_1_Valid,
 
-                    jsonData[i].Contact_Person_2,
-                    jsonData[i].Contact_Number_2,
-                    jsonData[i].Email_2,
-                    jsonData[i].Contact_Person_2_Valid,
+//                     jsonData[i].Contact_Person_2,
+//                     jsonData[i].Contact_Number_2,
+//                     jsonData[i].Email_2,
+//                     jsonData[i].Contact_Person_2_Valid,
 
-                    jsonData[i].Contact_Person_3,
-                    jsonData[i].Contact_Number_3,
-                    jsonData[i].Email_3,
-                    jsonData[i].Contact_Person_3_Valid,
+//                     jsonData[i].Contact_Person_3,
+//                     jsonData[i].Contact_Number_3,
+//                     jsonData[i].Email_3,
+//                     jsonData[i].Contact_Person_3_Valid,
 
-                    jsonData[i].Contact_Person_4,
-                    jsonData[i].Contact_Number_4,
-                    jsonData[i].Email_4,
-                    jsonData[i].Contact_Person_4_Valid,
+//                     jsonData[i].Contact_Person_4,
+//                     jsonData[i].Contact_Number_4,
+//                     jsonData[i].Email_4,
+//                     jsonData[i].Contact_Person_4_Valid,
 
-                    jsonData[i].Is_Main,
-                    jsonData[i].Is_Valid,
-                    jsonData[i].SEZ,
-                    jsonData[i].CID
-                  ],
-                  (error, results, fields) => {
-                    // console.log(error,results,fields)
-                    if (error) {
-                      if (error.errno === 1062) {
-                        results.status(501).json({
-                          is_Error: true
-                        });
-                      }
-                      return connection.rollback();
-                      return;
-                    }
-                  }
-                );
-              }
-            } else {
-              if (error) {
-                if (error.errno === 1062) {
-                  results.status(501).json({
-                    is_Error: true
-                  });
-                }
-                return connection.rollback();
-                return;
-              }
-            }
-          }
-        );
-      } else {
-        if (error) {
-          if (error.errno === 1062) {
-            results.status(501).json({
-              is_Error: true
-            });
-          }
-          return connection.rollback();
-          return;
-        }
-      }
-    });
-    connection.commit(function(err) {
-      if (err) {
-        return connection.rollback();
-      }
-    });
-  });
-});
+//                     jsonData[i].Is_Main,
+//                     jsonData[i].Is_Valid,
+//                     jsonData[i].SEZ,
+//                     jsonData[i].CID
+//                   ],
+//                   (error, results, fields) => {
+//                     // console.log(error,results,fields)
+//                     if (error) {
+//                       if (error.errno === 1062) {
+//                         results.status(501).json({
+//                           is_Error: true
+//                         });
+//                       }
+//                       return connection.rollback();
+//                       return;
+//                     }
+//                   }
+//                 );
+//               }
+//             } else {
+//               if (error) {
+//                 if (error.errno === 1062) {
+//                   results.status(501).json({
+//                     is_Error: true
+//                   });
+//                 }
+//                 return connection.rollback();
+//                 return;
+//               }
+//             }
+//           }
+//         );
+//       } else {
+//         if (error) {
+//           if (error.errno === 1062) {
+//             results.status(501).json({
+//               is_Error: true
+//             });
+//           }
+//           return connection.rollback();
+//           return;
+//         }
+//       }
+//     });
+//     connection.commit(function(err) {
+//       if (err) {
+//         return connection.rollback();
+//       }
+//     });
+//   });
+// });
 
-app.post(`/insert_customer_address`, (req, res) => {
-  // get all data from request
-  var customerId = req.query.customerId;
+// app.post(`/insert_customer_address`, (req, res) => {
+//   // get all data from request
+//   var customerId = req.query.customerId;
 
-  // get address (dynamic)
+//   // get address (dynamic)
 
-  var address = req.query.address;
-  var jsonData = JSON.parse(address);
-  var length = jsonData.length;
+//   var address = req.query.address;
+//   var jsonData = JSON.parse(address);
+//   var length = jsonData.length;
 
-  // define sql queries
-  var qrInsCustAddress = `insert into customer_location_master (
-        Customer_Id,Address,GST_Value,
-        Contact_Person_1,Contact_Number_1,Email_1, Contact_Person_1_Valid,
-        Contact_Person_2,Contact_Number_2,Email_2, Contact_Person_2_Valid,
-        Contact_Person_3,Contact_Number_3,Email_3, Contact_Person_3_Valid,
-        Contact_Person_4,Contact_Number_4,Email_4, Contact_Person_4_Valid,
-        Is_Main,Is_Valid,created_date,updated_date,SEZ,City,State,Pincode)
-    values
-    (?,?,?,
-    ?,?,?,1,
-    ?,?,?,1,
-    ?,?,?,1,
-    ?,?,?,1,
-    ?,1,null,null,?,?,?,?)`;
-  // start transaction
-  connection.beginTransaction(function(err) {
-    if (err) {
-      throw err;
-    }
-    // running second query (dynamic) for each address
-    for (i = 0; i < length; i++) {
-      connection.query(
-        qrInsCustAddress,
-        [
-          customerId,
-          jsonData[i].Address,
-          jsonData[i].GSTValue,
+//   // define sql queries
+//   var qrInsCustAddress = `insert into customer_location_master (
+//         Customer_Id,Address,GST_Value,
+//         Contact_Person_1,Contact_Number_1,Email_1, Contact_Person_1_Valid,
+//         Contact_Person_2,Contact_Number_2,Email_2, Contact_Person_2_Valid,
+//         Contact_Person_3,Contact_Number_3,Email_3, Contact_Person_3_Valid,
+//         Contact_Person_4,Contact_Number_4,Email_4, Contact_Person_4_Valid,
+//         Is_Main,Is_Valid,created_date,updated_date,SEZ,City,State,Pincode)
+//     values
+//     (?,?,?,
+//     ?,?,?,1,
+//     ?,?,?,1,
+//     ?,?,?,1,
+//     ?,?,?,1,
+//     ?,1,null,null,?,?,?,?)`;
+//   // start transaction
+//   connection.beginTransaction(function(err) {
+//     if (err) {
+//       throw err;
+//     }
+//     // running second query (dynamic) for each address
+//     for (i = 0; i < length; i++) {
+//       connection.query(
+//         qrInsCustAddress,
+//         [
+//           customerId,
+//           jsonData[i].Address,
+//           jsonData[i].GSTValue,
 
-          jsonData[i].ContactPerson1,
-          jsonData[i].ContactNumber1,
-          jsonData[i].Email1,
+//           jsonData[i].ContactPerson1,
+//           jsonData[i].ContactNumber1,
+//           jsonData[i].Email1,
 
-          jsonData[i].ContactPerson2,
-          jsonData[i].ContactNumber2,
-          jsonData[i].Email2,
+//           jsonData[i].ContactPerson2,
+//           jsonData[i].ContactNumber2,
+//           jsonData[i].Email2,
 
-          jsonData[i].ContactPerson3,
-          jsonData[i].ContactNumber3,
-          jsonData[i].Email3,
+//           jsonData[i].ContactPerson3,
+//           jsonData[i].ContactNumber3,
+//           jsonData[i].Email3,
 
-          jsonData[i].ContactPerson4,
-          jsonData[i].ContactNumber4,
-          jsonData[i].Email4,
+//           jsonData[i].ContactPerson4,
+//           jsonData[i].ContactNumber4,
+//           jsonData[i].Email4,
 
-          jsonData[i].isMain,
-          jsonData[i].SEZ,
-          jsonData[i].City,
-          jsonData[i].State,
-          jsonData[i].Pincode
-        ],
-        (error, results, fields) => {
-          // console.log('data: ',error, results, fields)
-          if (error) {
-            if (error.errno === 1062) {
-              res.status(501).json({
-                is_Error: true
-              });
-            }
-            return connection.rollback();
-            return;
-          } else if (!error)
-            res.status(200).json({
-              results: "success"
-            });
-        }
-      );
-    }
-    connection.commit(function(err) {
-      if (err) {
-        return connection.rollback();
-      }
-    });
-  });
-});
+//           jsonData[i].isMain,
+//           jsonData[i].SEZ,
+//           jsonData[i].City,
+//           jsonData[i].State,
+//           jsonData[i].Pincode
+//         ],
+//         (error, results, fields) => {
+//           // console.log('data: ',error, results, fields)
+//           if (error) {
+//             if (error.errno === 1062) {
+//               res.status(501).json({
+//                 is_Error: true
+//               });
+//             }
+//             return connection.rollback();
+//             return;
+//           } else if (!error)
+//             res.status(200).json({
+//               results: "success"
+//             });
+//         }
+//       );
+//     }
+//     connection.commit(function(err) {
+//       if (err) {
+//         return connection.rollback();
+//       }
+//     });
+//   });
+// });
 
 // get challans for a customer
-app.get(`/get_challan`, (req, res) => {
-  var qry = `SELECT challan_number FROM order_master where customer_id = ?;`;
-  var customer_id = req.query.customer_id;
-  // var challan_number
-  connection.query(qry, [customer_id], (error, results, fields) => {
-    if (error) {
-      res.status(501).json({
-        isSuccess: false,
-        error: error
-      });
-    } else {
-    }
-    res.status(200).json({
-      isSuccess: true,
-      results: results
-    });
-  });
-});
+// app.get(`/get_challan`, (req, res) => {
+//   var qry = `SELECT challan_number FROM order_master where customer_id = ?;`;
+//   var customer_id = req.query.customer_id;
+//   // var challan_number
+//   connection.query(qry, [customer_id], (error, results, fields) => {
+//     if (error) {
+//       res.status(501).json({
+//         isSuccess: false,
+//         error: error
+//       });
+//     } else {
+//     }
+//     res.status(200).json({
+//       isSuccess: true,
+//       results: results
+//     });
+//   });
+// });
 
-app.get(`/get_customer_assets_for_addassetpage`, (req, res) => {
-  var qry1 = `select a.*,b.*,c.serial_no from order_master a,order_detail b,asset c where a.ID=b.order_id and c.id = b.asset_id`;
+// app.get(`/get_customer_assets_for_addassetpage`, (req, res) => {
+//   var qry1 = `select a.*,b.*,c.serial_no from order_master a,order_detail b,asset c where a.ID=b.order_id and c.id = b.asset_id`;
 
-  connection.query(qry1, (error, results, fields) => {
-    if (error) {
-      res.status(501).json({
-        isSuccess: false,
-        error: error
-      });
-      return;
-    } else {
-    }
+//   connection.query(qry1, (error, results, fields) => {
+//     if (error) {
+//       res.status(501).json({
+//         isSuccess: false,
+//         error: error
+//       });
+//       return;
+//     } else {
+//     }
 
-    res.status(200).json({
-      isSuccess: true,
-      results: results
-    });
-  });
-});
+//     res.status(200).json({
+//       isSuccess: true,
+//       results: results
+//     });
+//   });
+// });
 
-app.get("/change_inventory_status_to_on_repair", (req, res) => {
-  var i;
-  var qry = "update asset set status=3 where id=? ";
-  var check = JSON.parse(req.query.data);
-  //console.log(check)
-  // console.log(req.query)
-  for (i = 0; i < check.length; i++) {
-    connection.query(qry, [check[i]], (error, results, fields) => {
-      if (error) {
-        res.status(501).json({
-          isSuccess: false,
-          error: error
-        });
-        return;
-      }
-    });
-  }
-  res.status(200).json({
-    isSuccess: true
-  });
-});
+// app.get("/change_inventory_status_to_on_repair", (req, res) => {
+//   var i;
+//   var qry = "update asset set status=3 where id=? ";
+//   var check = JSON.parse(req.query.data);
+//   //console.log(check)
+//   // console.log(req.query)
+//   for (i = 0; i < check.length; i++) {
+//     connection.query(qry, [check[i]], (error, results, fields) => {
+//       if (error) {
+//         res.status(501).json({
+//           isSuccess: false,
+//           error: error
+//         });
+//         return;
+//       }
+//     });
+//   }
+//   res.status(200).json({
+//     isSuccess: true
+//   });
+// });
 
 // get unavailable (out of stock) assets
-app.get(`/get_out_of_stock_assets`, (req, res) => {
-  var qGetStatic = `SELECT * FROM asset where status = 0 order by id`;
-  var qGetDynamic = `
-        SELECT attribute_id, attr_name, attribute_value, asset_id
-        FROM asset_details d, asset_types_attributes t
-        where d.attribute_id = t.id
-        and asset_id in (SELECT id FROM asset where status = 0) order by asset_id`;
-  var staticData;
+// app.get(`/get_out_of_stock_assets`, (req, res) => {
+//   var qGetStatic = `SELECT * FROM asset where status = 0 order by id`;
+//   var qGetDynamic = `
+//         SELECT attribute_id, attr_name, attribute_value, asset_id
+//         FROM asset_details d, asset_types_attributes t
+//         where d.attribute_id = t.id
+//         and asset_id in (SELECT id FROM asset where status = 0) order by asset_id`;
+//   var staticData;
 
-  connection.query(qGetStatic, (error, results, fields) => {
-    if (error) {
-      res.status(200).json({
-        isSuccess: false,
-        error: error
-      });
-    } else {
-      staticData = results;
-    }
-  });
-  connection.query(qGetDynamic, (error, results, fields) => {
-    res.status(201).json({
-      isSuccess: true,
-      static: staticData,
-      dynamic: results
-    });
-  });
-});
+//   connection.query(qGetStatic, (error, results, fields) => {
+//     if (error) {
+//       res.status(200).json({
+//         isSuccess: false,
+//         error: error
+//       });
+//     } else {
+//       staticData = results;
+//     }
+//   });
+//   connection.query(qGetDynamic, (error, results, fields) => {
+//     res.status(201).json({
+//       isSuccess: true,
+//       static: staticData,
+//       dynamic: results
+//     });
+//   });
+// });
 
-app.post(`/change_config_table`, (req, res) => {
-  var asset_id = req.query.asset_id;
-  var child_asset_id = req.query.child_asset_id;
+// app.post(`/change_config_table`, (req, res) => {
+//   var asset_id = req.query.asset_id;
+//   var child_asset_id = req.query.child_asset_id;
 
-  var qry = `insert into asset_config
-        (asset_id,child_asset_id,create_timestamp,update_timestamp,parent_asset_id,status)
-        values
-        (?,?,null,null,null,1)`;
+//   var qry = `insert into asset_config
+//         (asset_id,child_asset_id,create_timestamp,update_timestamp,parent_asset_id,status)
+//         values
+//         (?,?,null,null,null,1)`;
 
-  connection.query(
-    qry,
-    [asset_id, child_asset_id],
-    (error, results, response) => {
-      if (error) {
-        res.status(501).json({
-          isSuccess: false,
-          error: error
-        });
-      } else {
-        res.status(200).json({
-          isSuccess: true
-        });
-      }
-    }
-  );
-});
+//   connection.query(
+//     qry,
+//     [asset_id, child_asset_id],
+//     (error, results, response) => {
+//       if (error) {
+//         res.status(501).json({
+//           isSuccess: false,
+//           error: error
+//         });
+//       } else {
+//         res.status(200).json({
+//           isSuccess: true
+//         });
+//       }
+//     }
+//   );
+// });
 
-app.get(`/get_all_asset`, (req, res) => {
-  var qry = `select * from asset`;
+// app.get(`/get_all_asset`, (req, res) => {
+//   var qry = `select * from asset`;
 
-  connection.query(qry, (error, results, response) => {
-    if (error) {
-      res.status(501).json({
-        isSuccess: false,
-        error: error
-      });
-    } else {
-      res.status(200).json({
-        isSuccess: true,
-        results: results
-      });
-    }
-  });
-});
+//   connection.query(qry, (error, results, response) => {
+//     if (error) {
+//       res.status(501).json({
+//         isSuccess: false,
+//         error: error
+//       });
+//     } else {
+//       res.status(200).json({
+//         isSuccess: true,
+//         results: results
+//       });
+//     }
+//   });
+// });
 
-app.post(`/update_warranty`, (req, res) => {
-  var assetId = req.query.asset_id;
-  var newWarranty = req.query.warranty_date;
-  var qry = `update asset set warranty_end_date = ? where id = ?`;
+// app.post(`/update_warranty`, (req, res) => {
+//   var assetId = req.query.asset_id;
+//   var newWarranty = req.query.warranty_date;
+//   var qry = `update asset set warranty_end_date = ? where id = ?`;
 
-  connection.query(qry, [newWarranty, assetId], (error, results, response) => {
-    if (error) {
-      res.status(501).json({
-        isSuccess: false,
-        error: error
-      });
-    } else {
-      res.status(200).json({
-        isSuccess: true
-      });
-    }
-  });
-});
+//   connection.query(qry, [newWarranty, assetId], (error, results, response) => {
+//     if (error) {
+//       res.status(501).json({
+//         isSuccess: false,
+//         error: error
+//       });
+//     } else {
+//       res.status(200).json({
+//         isSuccess: true
+//       });
+//     }
+//   });
+// });
 
 // app.use(bodyParser.urlencoded({
 //     extended: true
 // }));
 
-app.use(bodyParser.json());
+// app.use(bodyParser.json());
 
-app.post(`/insert_challan_draft`, (req, res) => {
-  var challanType = req.query.challan_type;
-  var challanDescription = req.query.challan_description;
-  var challanDetails = req.body.challan_details;
+// app.post(`/insert_challan_draft`, (req, res) => {
+//   var challanType = req.query.challan_type;
+//   var challanDescription = req.query.challan_description;
+//   var challanDetails = req.body.challan_details;
 
-  var qry = `insert into challan_draft
-            (challan_type, challan_description, challan_details, create_timestamp, update_timestamp)
-            values (?, ?, ?, null, null)`;
+//   var qry = `insert into challan_draft
+//             (challan_type, challan_description, challan_details, create_timestamp, update_timestamp)
+//             values (?, ?, ?, null, null)`;
 
-  connection.query(
-    qry,
-    [challanType, challanDescription, challanDetails],
-    (error, results, response) => {
-      if (error) {
-        res.status(501).json({
-          isSuccess: false,
-          error: error
-        });
-      } else {
-        res.status(200).json({
-          isSuccess: true
-        });
-      }
-    }
-  );
-});
+//   connection.query(
+//     qry,
+//     [challanType, challanDescription, challanDetails],
+//     (error, results, response) => {
+//       if (error) {
+//         res.status(501).json({
+//           isSuccess: false,
+//           error: error
+//         });
+//       } else {
+//         res.status(200).json({
+//           isSuccess: true
+//         });
+//       }
+//     }
+//   );
+// });
 
 // modify challand draft
-app.post(`/modify_challan_draft`, (req, res) => {
-  var id = req.query.id;
-  var challanType = req.query.challan_type;
-  var challanDescription = req.query.challan_description;
-  var challanDetails = req.body.challan_details;
+// app.post(`/modify_challan_draft`, (req, res) => {
+//   var id = req.query.id;
+//   var challanType = req.query.challan_type;
+//   var challanDescription = req.query.challan_description;
+//   var challanDetails = req.body.challan_details;
 
-  var qry = `update challan_draft set
-            challan_type = ?,
-            challan_description = ?,
-            challan_details = ?,
-            create_timestamp = null,
-            update_timestamp = null
-                where id = ?`;
+//   var qry = `update challan_draft set
+//             challan_type = ?,
+//             challan_description = ?,
+//             challan_details = ?,
+//             create_timestamp = null,
+//             update_timestamp = null
+//                 where id = ?`;
 
-  connection.query(
-    qry,
-    [challanType, challanDescription, challanDetails, id],
-    (error, results, response) => {
-      if (error) {
-        res.status(501).json({
-          isSuccess: false,
-          error: error
-        });
-      } else {
-        res.status(200).json({
-          isSuccess: true
-        });
-      }
-    }
-  );
-});
+//   connection.query(
+//     qry,
+//     [challanType, challanDescription, challanDetails, id],
+//     (error, results, response) => {
+//       if (error) {
+//         res.status(501).json({
+//           isSuccess: false,
+//           error: error
+//         });
+//       } else {
+//         res.status(200).json({
+//           isSuccess: true
+//         });
+//       }
+//     }
+//   );
+// });
 
 // get all draft challans
-app.get(`/get_challan_drafts`, (req, res) => {
-  var qry = `select id, challan_type, challan_description, create_timestamp, update_timestamp from challan_draft`;
-  var customer_id = req.query.customer_id;
-  // var challan_number
-  connection.query(qry, (error, results, fields) => {
-    if (error) {
-      res.status(501).json({
-        isSuccess: false,
-        error: error
-      });
-    } else {
-    }
-    res.status(200).json({
-      isSuccess: true,
-      results: results
-    });
-  });
-});
+// app.get(`/get_challan_drafts`, (req, res) => {
+//   var qry = `select id, challan_type, challan_description, create_timestamp, update_timestamp from challan_draft`;
+//   var customer_id = req.query.customer_id;
+//   // var challan_number
+//   connection.query(qry, (error, results, fields) => {
+//     if (error) {
+//       res.status(501).json({
+//         isSuccess: false,
+//         error: error
+//       });
+//     } else {
+//     }
+//     res.status(200).json({
+//       isSuccess: true,
+//       results: results
+//     });
+//   });
+// });
 
 // API that accepts a challandId and outputs the challan details of that asset
 // app.get(`/get_challan_details`, (req, res) => {
@@ -1812,13 +1838,3 @@ update the order_detail table and set status to 0 according to the oids given
 * index.html file is the root file for react 
 *  
 */
-app.get("*", function(req, res) {
-  let indexHtml = fs.readFileSync(resolve("../build/index.html"), "utf8");
-  res.header("Content-Type", "text/html");
-  res.status(200).send(indexHtml);
-});
-
-/**
- * start the server on the given PORT
- */
-app.listen(PORT, () => console.log("server started on port " + PORT));

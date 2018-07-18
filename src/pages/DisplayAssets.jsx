@@ -145,7 +145,7 @@ class DisplayAssets extends Component {
   };
   // database operations
   componentWillMount = () => {
-    fetch(`/get_asset`, { method: "GET" })
+    fetchAPI("/asset/get_asset", {})
       .then(r => r.json())
       .then(data => {
         // parsing json data (need to verify later)
@@ -390,9 +390,10 @@ class DisplayAssets extends Component {
         var hsnArr = JSON.parse(jsn_hsnCode);
         //console.log("JSON.stringify(data.hsn_result) = "+jsn_hsnCode);
         var hsnarr = hsnArr.length;
-        for (i = 0; i < hsnarr; i++) {
+        for (let i = 0; i < hsnarr; i++) {
           //console.log("JSON.stringify(data.hsn_result) = "+hsnarr);
-          this.state.hsnCode = hsnArr[i].hsnCode;
+          // this.state.hsnCode = hsnArr[i].hsnCode;
+          this.setState({ hsnCode: hsnArr[i].hsnCode });
         }
 
         //this.state.hsnCode=JSON.stringify(data.hsnResult)[0].hsnCode;
@@ -430,6 +431,11 @@ class DisplayAssets extends Component {
               value: dynar[i * dynaAttribCount + j].attribute_value
             });
           }
+          let madate = "";
+          let purdate = "";
+          let procdate = "";
+          let todate = "";
+
           if (
             staticr[i].warranty_end_date === "0000-00-00 00:00:00" ||
             staticr[i].purchase_date === "0000-00-00 00:00:00" ||
@@ -437,22 +443,18 @@ class DisplayAssets extends Component {
             staticr[i].transfer_order_date === "0000-00-00 00:00:00"
           ) {
             if (staticr[i].warranty_end_date === "0000-00-00 00:00:00")
-              var madate = "";
+              madate = "";
             if (staticr[i].purchase_date === "0000-00-00 00:00:00")
-              var purdate = "";
+              purdate = "";
             if (staticr[i].procurement_date === "0000-00-00 00:00:00")
-              var procdate = "";
+              procdate = "";
             if (staticr[i].transfer_order_date === "0000-00-00 00:00:00")
-              var todate = "";
+              todate = "";
           } else {
-            var madate = moment(staticr[i].warranty_end_date).format(
-              "DD/MM/YYYY"
-            );
-            var purdate = moment(staticr[i].purchase_date).format("DD/MM/YYYY");
-            var procdate = moment(staticr[i].procurement_date).format(
-              "DD/MM/YYYY"
-            );
-            var todate = moment(staticr[i].transfer_order_date).format(
+            madate = moment(staticr[i].warranty_end_date).format("DD/MM/YYYY");
+            purdate = moment(staticr[i].purchase_date).format("DD/MM/YYYY");
+            procdate = moment(staticr[i].procurement_date).format("DD/MM/YYYY");
+            todate = moment(staticr[i].transfer_order_date).format(
               "DD/MM/YYYY"
             );
           }
@@ -993,7 +995,7 @@ class DisplayAssets extends Component {
       );
     } else {
       // render add compoents page
-      let tempCartItems = this.state.cartItems;
+      // let tempCartItems = this.state.cartItems;
       console.log("cartt: ");
       console.log(this.state.cartItems);
       return (

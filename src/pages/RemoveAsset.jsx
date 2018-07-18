@@ -118,7 +118,7 @@ class RemoveAsset extends Component {
 
   // database operations
   componentWillMount = () => {
-    fetch(`/get_asset`, { method: "GET" })
+    fetchAPI("/asset/get_asset", {})
       .then(r => r.json())
       .then(data => {
         // parsing json data
@@ -269,6 +269,10 @@ class RemoveAsset extends Component {
               attribute_id: dynar[i * dynaAttribCount + j].attribute_id
             };
           }
+          let madate = "";
+          let purdate = "";
+          let procdate = "";
+          let todate = "";
 
           if (
             staticr[i].warranty_end_date === "0000-00-00 00:00:00" ||
@@ -277,24 +281,24 @@ class RemoveAsset extends Component {
             staticr[i].transfer_order_date === "0000-00-00 00:00:00"
           ) {
             if (staticr[i].warranty_end_date === "0000-00-00 00:00:00")
-              var madate = "";
+              madate = "";
             if (staticr[i].purchase_date === "0000-00-00 00:00:00")
-              var purdate = "";
+              purdate = "";
             if (staticr[i].procurement_date === "0000-00-00 00:00:00")
-              var procdate = "";
+              procdate = "";
             if (staticr[i].transfer_order_date === "0000-00-00 00:00:00")
-              var todate = "";
+              todate = "";
           } else {
-            var madate = moment(staticr[i].warranty_end_date).format(
+            madate = moment(staticr[i].warranty_end_date).format(
               "YYYY-MM-DD HH:mm:ss"
             );
-            var purdate = moment(staticr[i].purchase_date).format(
+            purdate = moment(staticr[i].purchase_date).format(
               "YYYY-MM-DD HH:mm:ss"
             );
-            var procdate = moment(staticr[i].procurement_date).format(
+            procdate = moment(staticr[i].procurement_date).format(
               "YYYY-MM-DD HH:mm:ss"
             );
-            var todate = moment(staticr[i].transfer_order_date).format(
+            todate = moment(staticr[i].transfer_order_date).format(
               "YYYY-MM-DD HH:mm:ss"
             );
           }
@@ -497,7 +501,7 @@ class RemoveAsset extends Component {
     this.setState({
       rmSelectedAssetType: data.value
     });
-    fetch(`/get_asset_type?type_name=${data.value}`, { method: "GET" })
+    fetchAPI("/asset/get_asset_type", { type_name: data.value })
       .then(r => r.json())
       .then(data => {
         // parsing json data

@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const connection = require("./connection");
+const connection = require("../connection");
 
 router.post("/get_asset", (req, res) => {
   const qry = "select id,type_name from asset_types";
@@ -14,6 +14,17 @@ router.post("/get_asset", (req, res) => {
         results: error
       });
     }
+  });
+});
+
+router.post("/get_asset_type", (req, res) => {
+  var type_name = req.body.type_name;
+  var qry =
+    "select id,asset_type_id,attr_name,is_modifiable,is_mandatory,is_printable from asset_types_attributes where asset_type_id=(select id from asset_types where type_name=?)";
+  connection.query(qry, [type_name], (error, results, fields) => {
+    res.status(200).json({
+      results: results
+    });
   });
 });
 
@@ -84,6 +95,110 @@ router.post("/insert_asset_type", (req, res) => {
         return connection.rollback();
       }
     });
+  });
+});
+
+router.post("/modify_asset_type", (req, res) => {
+  var type_name = req.body.type_name;
+  var attributes = req.body.attributes;
+  var jsonData = JSON.parse(attributes);
+  var length = jsonData.length;
+
+  // for false insertion
+  var assetIds = [];
+  var insAttribId = "";
+
+  // console.log('type_name:', type_name)
+  var qry = `insert into asset_types_attributes(asset_type_id,attr_name,is_modifiable,is_mandatory,is_active,create_timestamp,update_timestamp,is_printable) values ((select id from asset_types where type_name = ?),?,?,?,true,null,null,?)`;
+
+  // fetch all the asset ids for which modification is required
+  var qGetAssetIds = `SELECT id FROM asset where asset_type_id = (select id from asset_types where type_name = ?)`;
+
+  // get the newly inserted attribute-id
+  var qGetAttribId = `SELECT max(id) as attribute_id FROM asset_types_attributes`;
+
+  // insert null data into the newly inserted attribute field of all assets with the changed asset-type
+  var qInsertAssetDetails = `insert into asset_details (asset_id, attribute_id, attribute_value) values (?,?,?)`;
+
+  connection.beginTransaction(function(err) {
+    if (err) {
+      throw err;
+    }
+
+    // insert new attributes
+    for (var i = 0; i < length; i++) {
+      connection.query(qry, [
+        type_name,
+        jsonData[i].name,
+        jsonData[i].isMandatory,
+        jsonData[i].isModifiable,
+        jsonData[i].isPrintable
+      ]);
+      // console.log(`insert into asset_types_attributes(asset_type_id,attr_name,is_modifiable,is_mandatory,is_active,create_timestamp,update_timestamp) values ((select id from asset_types where type_name = ${type_name}),${jsonData[i].name},${jsonData[i].isMandatory},${jsonData[i].isModifiable},true,null,null)`)
+      // insert here
+
+      // getting attribute id
+      connection.query(qGetAttribId, (error, results, fields) => {
+        if (!error) {
+          insAttribId = results[0].attribute_id;
+        } else {
+          res.status(200).json({
+            results: error
+          });
+        }
+      });
+      // getting asset ids
+      connection.query(qGetAssetIds, [type_name], (error, results, fields) => {
+        if (!error) {
+          // query success, we obtained the asset id fields
+
+          assetIds = results;
+          assetIds.forEach(element => {
+            // insert black attribute for each asset in this asset-type
+            connection.query(qInsertAssetDetails, [
+              element.id,
+              insAttribId,
+              ""
+            ]);
+          });
+        } else {
+          res.status(200).json({
+            results: error
+          });
+        }
+      });
+    }
+
+    connection.commit(function(err) {
+      if (err) {
+        res.status(501).json({
+          isSuccess: "false"
+        });
+        return connection.rollback();
+      } else if (!err) {
+        res.status(200).json({
+          isSuccess: "true"
+        });
+      }
+    });
+  });
+});
+
+router.post("/get_all_asset", (req, res) => {
+  var qry = `select * from asset`;
+
+  connection.query(qry, (error, results, response) => {
+    if (error) {
+      res.status(501).json({
+        isSuccess: false,
+        error: error
+      });
+    } else {
+      res.status(200).json({
+        isSuccess: true,
+        results: results
+      });
+    }
   });
 });
 
@@ -219,28 +334,31 @@ router.post("/change_config_status", (req, res) => {
   });
 });
 
-router.post("/get_asset_config", (req, res) => {
-  var qry1 =
-    "select b.*,a.serial_no from asset a,asset_config b where a.id=b.asset_id and b.status=1 order by b.id";
-  var qry2 =
-    "select a.serial_no from asset a,asset_config b where a.id=b.child_asset_id and b.status=1 order by b.id";
-  var x;
-  connection.query(qry1, (error, results, fields) => {
+router.post("/get_out_of_stock_assets", (req, res) => {
+  var qGetStatic = `SELECT * FROM asset where status = 0 order by id`;
+  var qGetDynamic = `
+        SELECT attribute_id, attr_name, attribute_value, asset_id
+        FROM asset_details d, asset_types_attributes t
+        where d.attribute_id = t.id
+        and asset_id in (SELECT id FROM asset where status = 0) order by asset_id`;
+  var staticData;
+
+  connection.query(qGetStatic, (error, results, fields) => {
     if (error) {
-      res.status(501).json({
+      res.status(200).json({
         isSuccess: false,
         error: error
       });
-      return;
     } else {
-      x = results;
-      connection.query(qry2, (error, results, fields) => {
-        res.json({
-          asset_config_id: x,
-          asset_config_child: results
-        });
-      });
+      staticData = results;
     }
+  });
+  connection.query(qGetDynamic, (error, results, fields) => {
+    res.status(201).json({
+      isSuccess: true,
+      static: staticData,
+      dynamic: results
+    });
   });
 });
 
@@ -477,6 +595,25 @@ router.post("/change_inventory_status", (req, res) => {
       isSuccess: true,
       last_challan_number
     });
+  });
+});
+
+router.post("/update_warranty", (req, res) => {
+  var assetId = req.body.asset_id;
+  var newWarranty = req.body.warranty_date;
+  var qry = `update asset set warranty_end_date = ? where id = ?`;
+
+  connection.query(qry, [newWarranty, assetId], (error, results, response) => {
+    if (error) {
+      res.status(501).json({
+        isSuccess: false,
+        error: error
+      });
+    } else {
+      res.status(200).json({
+        isSuccess: true
+      });
+    }
   });
 });
 

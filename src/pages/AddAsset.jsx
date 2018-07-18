@@ -66,7 +66,7 @@ export default class AddAsset extends React.Component {
   // database operations
   componentWillMount = () => {
     // Fetch asset type names
-    fetch(`/get_asset`, { method: "GET" })
+    fetchAPI("/asset/get_asset", {})
       .then(r => r.json())
       .then(data => {
         // parsing json data (need to verify later)
@@ -141,7 +141,7 @@ export default class AddAsset extends React.Component {
     this.setState({
       selectedAssetType: data.value
     });
-    fetch(`/get_asset_type?type_name=${data.value}`, { method: "GET" })
+    fetchAPI("/asset/get_asset_type", { type_name: data.value })
       .then(r => r.json())
       .then(data => {
         // parsing json data (need to verify later)
