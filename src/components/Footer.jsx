@@ -42,17 +42,17 @@ export default class Footer extends React.Component {
             </li>
             <li>
               <a href="">
-                <i class="facebook big icon" />
+                <i className="facebook big icon" />
               </a>
             </li>
             <li>
               <a href="">
-                <i class="twitter square big icon" />
+                <i className="twitter square big icon" />
               </a>
             </li>
             <li>
               <a href="">
-                <i class="linkedin square big icon" />
+                <i className="linkedin square big icon" />
               </a>
             </li>
           </ul>

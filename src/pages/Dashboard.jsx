@@ -503,7 +503,7 @@ class Dashboard extends Component {
               <Loader>Loading</Loader>
             </Dimmer>
             <Header size="large" color="red" textAlign="center">
-              <Icon name="bar graph" color="Teal" />Customer Order Details
+              <Icon name="bar graph" color="teal" />Customer Order Details
             </Header>
             <div
               style={{ width: "100%", overflowX: "auto", overflowY: "hidden" }}
@@ -545,6 +545,7 @@ class Dashboard extends Component {
             {this.state.allCustomers.map(obj => {
               return (
                 <Table.Row
+                  key={obj.Customer_Id}
                   style={{ cursor: "pointer" }}
                   onClick={() => {
                     this.setState({
@@ -576,14 +577,14 @@ class Dashboard extends Component {
   renderSelectedCustomerDetails() {
     if (this.state.selectedCustomerDetails)
       return [
-        <div>
+        <div key={1}>
           <br />
           <br />
           <br />
           <br />
           <br />
         </div>,
-        <Card>
+        <Card key={2}>
           <Card.Content>
             <Card.Header>
               {this.state.selectedCustomerDetails.CName}
@@ -743,7 +744,7 @@ class Dashboard extends Component {
           <Table.Footer fullWidth>
             <Table.Row>
               <Table.HeaderCell>
-                <Icon name="instock" />
+                {/* <Icon name="instock" /> */}
                 <strong>TOTAL</strong>
                 <Icon name="chevron right" />
               </Table.HeaderCell>
@@ -797,9 +798,8 @@ class Dashboard extends Component {
           </Table.Header>
           <Table.Body>
             {this.state.assetOutOfStockDetails.map(obj => {
-              console.log("data", obj);
               return (
-                <Table.Row>
+                <Table.Row key={obj.id}>
                   <Table.Cell>{obj.make}</Table.Cell>
                   <Table.Cell>{obj.serial_no}</Table.Cell>
                   <Table.Cell>{obj.CName}</Table.Cell>
@@ -849,9 +849,8 @@ class Dashboard extends Component {
           </Table.Header>
           <Table.Body>
             {this.state.assetInStockDetails.map(obj => {
-              // console.log(obj)
               return (
-                <Table.Row>
+                <Table.Row key={obj.id}>
                   <Table.Cell>{obj.make}</Table.Cell>
                   {moment(obj.warranty_end_date).format(
                     "YYYY-MM-DD HH:mm:ss"
@@ -941,9 +940,8 @@ class Dashboard extends Component {
           </Table.Header>
           <Table.Body>
             {this.state.assetDamagedStockDetails.map(obj => {
-              // console.log(obj)
               return (
-                <Table.Row>
+                <Table.Row key={obj.id}>
                   <Table.Cell>{obj.make}</Table.Cell>
                   {moment(obj.warranty_end_date).format(
                     "YYYY-MM-DD HH:mm:ss"
@@ -1028,11 +1026,14 @@ class Dashboard extends Component {
             <Grid.Column width={4}>
               <Table celled unstackable selectable>
                 <Table.Header>
-                  <Table.HeaderCell>Asset Type</Table.HeaderCell>
+                  <Table.Row>
+                    <Table.HeaderCell>Asset Type</Table.HeaderCell>
+                  </Table.Row>
                 </Table.Header>
                 <Table.Body>
                   {this.state.allAssetTypes.map(asset => (
                     <Table.Row
+                      key={asset.id}
                       style={{ cursor: "pointer" }}
                       onClick={this.assetTypeOnClick.bind(
                         this,
@@ -1052,14 +1053,17 @@ class Dashboard extends Component {
               {this.state.selectedAssetTypeName ? (
                 <Table celled unstackable selectable>
                   <Table.Header>
-                    <Table.HeaderCell>Make</Table.HeaderCell>
-                    <Table.HeaderCell>SI No.</Table.HeaderCell>
-                    <Table.HeaderCell>Comment</Table.HeaderCell>
-                    <Table.HeaderCell>Branch</Table.HeaderCell>
+                    <Table.Row>
+                      <Table.HeaderCell>Make</Table.HeaderCell>
+                      <Table.HeaderCell>SI No.</Table.HeaderCell>
+                      <Table.HeaderCell>Comment</Table.HeaderCell>
+                      <Table.HeaderCell>Branch</Table.HeaderCell>
+                    </Table.Row>
                   </Table.Header>
                   <Table.Body>
                     {this.state.selectedAssetDetails.map(asset => (
                       <Table.Row
+                        key={asset.id}
                         style={{ cursor: "pointer" }}
                         onClick={this.assetOnClick.bind(this, asset.id)}
                         active={asset.id === this.state.selectedAssetId}
@@ -1175,9 +1179,8 @@ class Dashboard extends Component {
           </Table.Header>
           <Table.Body>
             {this.state.selectedCustomerOrderDetails.map(obj => {
-              // console.log(obj)
               return (
-                <Table.Row>
+                <Table.Row key={obj.oid}>
                   <Table.Cell>{obj.make}</Table.Cell>
                   <Table.Cell>{obj.oid}</Table.Cell>
                   {moment(obj.order_date).format("YYYY-MM-DD HH:mm:ss") !==

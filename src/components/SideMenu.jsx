@@ -46,7 +46,7 @@ class SideMenu extends React.Component {
           <a id="challanDraft" className="menu-item" href="/challanDraft">
             <i className="copy outline icon" />Saved Challan Drafts
           </a>
-          <a id="settings" className="menu-item" href="/settings">
+          <span id="settings" className="menu-item">
             <i className="cogs icon" /> Settings
             <ul>
               <li>
@@ -70,7 +70,7 @@ class SideMenu extends React.Component {
                 </a>
               </li>
             </ul>
-          </a>
+          </span>
           <a
             id="home"
             className="menu-item"
