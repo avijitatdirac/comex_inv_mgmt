@@ -38,6 +38,7 @@ const order = require("./routes/order");
 const challan = require("./routes/challan");
 const branch = require("./routes/branch");
 const user = require("./routes/user");
+const organization = require("./routes/organization");
 
 /**
  * serve all static files without any session authentication
@@ -67,6 +68,7 @@ app.use("/order", order);
 app.use("/challan", challan);
 app.use("/branch", branch);
 app.use("/user", user);
+app.use("/organization", organization);
 
 /**
  *

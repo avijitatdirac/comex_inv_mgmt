@@ -138,10 +138,10 @@ class DisplayAssets extends Component {
 
   componentDidMount = () => {
     console.log(this.state.selectedCategory);
-    let user = JSON.parse(localStorage.getItem("user"));
-    setTimeout(() => {
-      this.setState({ selectedBranch: user.branch });
-    }, 200);
+    // let user = JSON.parse(localStorage.getItem("user"));
+    // setTimeout(() => {
+    //   this.setState({ selectedBranch: user.branch });
+    // }, 200);
   };
   // database operations
   componentWillMount = () => {

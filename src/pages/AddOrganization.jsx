@@ -1,137 +1,142 @@
 import React, { Component } from "react";
-import { Form, Icon, Button, Segment, Dimmer, Loader } from "semantic-ui-react";
+import {
+  Label,
+  Icon,
+  Button,
+  Segment,
+  Dimmer,
+  Loader,
+  Input,
+  Message
+} from "semantic-ui-react";
 import { fetchAPI } from "../utility";
-const branchOptions = [
-  { key: "a", text: "Pune", value: "Pune" },
-  { key: "b", text: "Bangalore", value: "Bangalore" },
-  { key: "c", text: "Kolkata", value: "Kolkata" }
-];
 
 export default class AddOrganization extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      firstName: "",
-      lastName: "",
-      email: "",
-      password: "",
-      Phone: "",
-      branch: "",
-      submitted: false,
-      dimmerActive: false,
-      customerRoles: [],
-      role: ""
+      id: "",
+      name: "",
+      address: "",
+      isDisabled: true,
+      message: ""
     };
-    this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
-  }
-  componentWillMount() {
-    fetchAPI("/cust/get_customer_roles", {})
-      .then(r => r.json())
-      .then(data => {
-        console.log(data);
-        var rolelist = [];
-        data.customerRoles.forEach(role => {
-          rolelist = rolelist.concat({
-            key: role.customer_role_id,
-            value: role.customer_role_name,
-            text: role.customer_role_name
-          });
-        });
-        this.setState({
-          customerRoles: rolelist,
-          visibleRol1: true
-        });
-      })
-      .catch(err => console.log(err));
+    this.handleEdit = this.handleEdit.bind(this);
   }
 
-  handleChange(e) {
-    const { name, value } = e.target;
-    console.log("event", e.target);
-    this.setState({ [name]: value });
+  async fetchOrganization() {
+    const res = await fetchAPI("/organization/get_organization_name", {});
+    const data = await res.json();
+    const { id, name, address } = data;
+    this.setState({ id, name, address });
+    if (!id) {
+      this.setState({ isDisabled: false });
+    }
   }
-  handleSubmit(e) {
+
+  componentDidMount() {
+    this.fetchOrganization();
+  }
+
+  handleEdit(e) {
     e.preventDefault();
-    this.setState({ submitted: true });
+    this.setState({ isDisabled: false });
   }
-  onChangeBranch = (evt, data) => this.setState({ branch: data.value });
-  onChangeRole = (evt, data) => this.setState({ role: data.value });
+
+  async handleSubmit(e) {
+    e.preventDefault();
+    this.setState({ dimmerActive: true, message: "" });
+    const id = this.state.id || 1;
+    const name = this.state.name;
+    const address = this.state.address;
+    try {
+      const res = await fetchAPI("/organization/save_organization", {
+        id,
+        name,
+        address
+      });
+      const data = await res.json();
+      if (data.message === "success") {
+        this.setState({
+          dimmerActive: false,
+          message: "Successfully Saved",
+          isDisabled: true
+        });
+        this.fetchOrganization();
+      } else {
+        this.setState({ dimmerActive: false, message: "Error while saving" });
+      }
+    } catch (err) {
+      console.error(err);
+      this.setState({ dimmerActive: false });
+    }
+  }
+
   render() {
-    const { dimmerActive, branch, customerRoles, role } = this.state;
+    const { dimmerActive, isDisabled } = this.state;
     return (
       <div className="page">
         <Dimmer.Dimmable as={Segment} dimmed={dimmerActive}>
           <Dimmer active={dimmerActive} inverted>
-            <Loader>Submitting Data</Loader>
+            <Loader>Saving Organization</Loader>
           </Dimmer>
-          <h1>Add New User</h1>
+          <h1>Organization</h1>
           <Segment>
-            <Form>
-              <Form.Field className="ui required field">
-                <label>First Name</label>
-                <input
-                  id="firstName"
-                  name="firstName"
-                  placeholder="First Name"
-                  onChange={this.handleChange}
-                />
-              </Form.Field>
-              <Form.Field className="ui required field">
-                <label>Last Name</label>
-                <input
-                  id="lastName"
-                  name="lastName"
-                  placeholder="Last Name"
-                  onChange={this.handleChange}
-                />
-              </Form.Field>
-              <Form.Field className="ui required field">
-                <label>Email</label>
-                <input
-                  id="email"
-                  name="email"
-                  placeholder="Email"
-                  onChange={this.handleChange}
-                />
-              </Form.Field>
-              <Form.Field className="ui required field">
-                <label>Password</label>
-                <input
-                  id="password"
-                  name="password"
-                  placeholder="Password"
-                  onChange={this.handleChange}
-                />
-              </Form.Field>
+            <Label>Organization ID</Label>
+            <Input fluid disabled={true} value={this.state.id} />
+            <br />
+            <Label>
+              <Icon name="users" size="large" />Name&nbsp;&nbsp;&nbsp;
+            </Label>
+            <Input
+              fluid
+              disabled={isDisabled}
+              placeholder="Please enter organization name"
+              value={this.state.name}
+              onChange={e => this.setState({ name: e.target.value })}
+            />
+            <br />
+            <Label>
+              <Icon name="address book" size="large" />Address&nbsp;&nbsp;&nbsp;
+            </Label>
+            <Input
+              fluid
+              disabled={isDisabled}
+              placeholder="Please enter organization address"
+              value={this.state.address}
+              onChange={e => this.setState({ address: e.target.value })}
+            />
+            <br />
 
-              <Form.Select
-                onChange={this.onChangeRole}
-                value={role}
-                size="small"
-                label="Role"
-                placeholder="Select Branch"
-                name="role"
-                options={customerRoles}
-              />
-              <Form.Select
-                onChange={this.onChangeBranch}
-                value={branch}
-                name="branch"
-                size="small"
-                label="Branch"
-                placeholder="Select Branch"
-                options={branchOptions}
-              />
-            </Form>
-            <Button
-              style={{ "margin-top": "5px" }}
-              color="blue"
-              onClick={this.handleSubmit}
-            >
-              <Icon name="save" />Submit
-            </Button>
+            {!this.state.isDisabled ? (
+              <Button
+                style={{ marginTop: "5px" }}
+                color="blue"
+                onClick={this.handleSubmit}
+              >
+                <Icon name="save" />Submit
+              </Button>
+            ) : (
+              <Button
+                style={{ marginTop: "5px" }}
+                color="blue"
+                onClick={this.handleEdit}
+              >
+                <Icon name="edit" />Edit
+              </Button>
+            )}
           </Segment>
+          {this.state.message ? (
+            <Message
+              icon="thumbs up outline"
+              success
+              header="Success"
+              content={this.state.message}
+            />
+          ) : (
+            false
+          )}
         </Dimmer.Dimmable>
       </div>
     );

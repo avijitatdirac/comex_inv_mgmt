@@ -136,7 +136,7 @@ class ReturnAssets extends Component {
     };
   }
 
-  componentWillMount() {
+  componentDidMount() {
     // fetch all customer details from database
     // fetch all customer details from database
     fetchAPI("/cust/get_customer", {})
@@ -364,7 +364,9 @@ class ReturnAssets extends Component {
                 returndate: purdate,
                 unitcost: dynadata[i].total_unit_price,
                 orderid: dynadata[i].oid,
-                unique: dynadata[i].ID
+                unique: `${
+                  dynadata[i].ID
+                }-${i}` /** appending the index within the unque value to make it more unique, solves the radio button malfunction bug */
               }
             ]),
             tableDataInitial: this.state.tableDataInitial.concat([

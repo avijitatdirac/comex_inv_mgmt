@@ -2,6 +2,23 @@ const express = require("express");
 const router = express.Router();
 const connection = require("../connection");
 
+router.post("/get_user_list", (req, res) => {
+  const qry = `select 
+                  first_name,
+                  last_name,
+                  email_address,
+                  role_id,
+                  branch_id
+              from users`;
+  connection.query(qry, (error, result) => {
+    if (error) {
+      res.status(503).json({ message: "Database error", error });
+    } else {
+      res.status(200).json({ userList: result });
+    }
+  });
+});
+
 router.post("/save_user_details", (req, res) => {
   const qry = `insert into users(
         username, 
