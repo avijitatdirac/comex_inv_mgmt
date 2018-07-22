@@ -1,13 +1,14 @@
 import React, { Component } from "react";
 import { Form, Icon, Button, Segment, Dimmer, Loader } from "semantic-ui-react";
 import { fetchAPI } from "../utility";
+
 const branchOptions = [
   { key: "a", text: "Pune", value: "Pune" },
   { key: "b", text: "Bangalore", value: "Bangalore" },
   { key: "c", text: "Kolkata", value: "Kolkata" }
 ];
 
-export default class AddUsers extends Component {
+class AddUsers extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -25,6 +26,7 @@ export default class AddUsers extends Component {
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
   }
+
   componentWillMount() {
     fetchAPI("/cust/get_customer_roles", {})
       .then(r => r.json())
@@ -125,7 +127,7 @@ export default class AddUsers extends Component {
               />
             </Form>
             <Button
-              style={{ "margin-top": "5px" }}
+              style={{ marginTop: "15px" }}
               color="blue"
               onClick={this.handleSubmit}
             >
@@ -137,3 +139,5 @@ export default class AddUsers extends Component {
     );
   }
 }
+
+export default AddUsers;
