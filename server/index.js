@@ -36,6 +36,8 @@ const asset = require("./routes/asset");
 const assetConfig = require("./routes/config");
 const order = require("./routes/order");
 const challan = require("./routes/challan");
+const branch = require("./routes/branch");
+const user = require("./routes/user");
 
 /**
  * serve all static files without any session authentication
@@ -63,6 +65,8 @@ app.use("/asset", asset);
 app.use("/config", assetConfig);
 app.use("/order", order);
 app.use("/challan", challan);
+app.use("/branch", branch);
+app.use("/user", user);
 
 /**
  *

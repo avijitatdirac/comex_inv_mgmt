@@ -33,6 +33,8 @@ function messages() {
     passwordLength: "Password should be at least 8 characters",
     loginSuccess: "You are successfully logged in",
     notValidEmail: "Mail address is not valid!",
-    invalidUser: "Invalid user"
+    invalidUser: "Invalid user",
+    addUserSuccess: "User successfully added",
+    addUserFail: "Cannot save user"
   };
 }
