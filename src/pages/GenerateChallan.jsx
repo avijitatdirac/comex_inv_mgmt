@@ -34,26 +34,6 @@ function getDescription(obj) {
   return `${str}`;
 }
 
-// function getExtras(obj) {
-//   if (obj.extras !== undefined) {
-//     var extrasList = "\n + ";
-
-//     obj.extras.forEach(extra => {
-//       extrasList = extrasList + "\n + " + extra.make;
-//     });
-//     return `${extrasList}`;
-//   } else {
-//     return undefined;
-//   }
-// }
-
-// branch options
-// const branchOptions = [
-//   { key: "a", text: "Pune", value: "Pune" },
-//   { key: "b", text: "Bangalore", value: "Bangalore" },
-//   { key: "c", text: "Kolkata", value: "Kolkata" }
-// ];
-
 const taxOptions = [
   { key: "a", text: "CGST/SGST", value: "CGST/SGST" },
   { key: "b", text: "IGST", value: "IGST" }
@@ -73,12 +53,7 @@ class GenerateChallan extends React.Component {
 
     // if resume state is define in props then resume previous state
     if (this.props.resumeState !== undefined) {
-      // console.log('resuming state', this.props.resumeState)
-      // set state according to resumestate
-      // this.state = JSON.parse(this.props.resumeState)
       var resumeState = JSON.parse(this.props.resumeState);
-
-      // console.log('parsed state: ', resumeState)
       this.state = resumeState;
     }
     // else do the default
@@ -224,19 +199,6 @@ class GenerateChallan extends React.Component {
     return extraData;
   };
 
-  // motivational code
-  // onChangeUnitPrice = (event, idx) => {
-  // 	var temp = this.state.challanCartItems;
-  // 	const newCartItems = temp.map((item, sidx) => {
-  // 		if (idx !== sidx) {
-  // 		  return item;
-  // 		} else {
-  // 		  return { ...item, unitPrice: event.target.value};
-  // 		}
-  // 	})
-  // 	this.setState({ challanCartItems: newCartItems });
-  // }
-
   // calculate total price
   calculateTotal = () => {
     var total = 0;
@@ -245,7 +207,6 @@ class GenerateChallan extends React.Component {
         Number(total) +
         Number(element.totalPrice !== undefined ? element.totalPrice : 0);
     });
-    this.setState({ netTotalAmount: total });
     return `${total}`;
   };
 
@@ -259,10 +220,6 @@ class GenerateChallan extends React.Component {
           element.totalUnitPrice !== undefined ? element.totalUnitPrice : 0
         );
     });
-    // this.state.netAmount = total;
-    this.setState({ netAmount: total });
-    //this.setState({netAmount:total})
-    console.log("net amount=" + total);
     return `${total}`;
   };
 
@@ -278,10 +235,6 @@ class GenerateChallan extends React.Component {
           )) /
         100;
       total = total + l_gst;
-      //total = (Number(total) + Number(element.gst!==undefined ? element.gst : 0)*Number(element.totalUnitPrice!==undefined ? element.totalUnitPrice : 0))/100;
-      // *Number(element.totalUnitPrice!==undefined ? element.totalUnitPrice : 0)
-      // this.state.netGst = total;
-      this.setState({ netGst: total });
     });
     return `${total}`;
   };
@@ -304,24 +257,6 @@ class GenerateChallan extends React.Component {
     else return `${0}`;
   };
 
-  // // calculate total unit price
-  // calculateTotalUnitPrice = (idx) => {
-  // 	var temp = this.state.challanCartItems
-  // 	// console.log('start: ', this.state.rentStartDate, ' End: ', obj.rentEndDate, 'UP: ', obj.unitPrice)
-  // 	const newCartItems = temp.map((item, sidx) => {
-  // 		if (idx !== sidx) {
-  // 			return item;
-  // 		} else {
-  // 			// console.log('start: ', this.state.rentStartDate, ' End: ', item.rentEndDate, 'UP: ', item.unitPrice)
-  // 			// calculate interval
-  // 			var days = item.rentEndDate.diff(this.state.rentStartDate, 'days')
-  // 			console.log('up: ',item.unitPrice, 'days: ', days, 'total: ', item.unitPrice * days)
-  // 			return { ...item, totalUnitPrice: item.unitPrice * days};
-  // 		}
-  // 	})
-  // 	this.setState({challanCartItems: newCartItems})
-  // }
-
   saveAsDraft = () => {
     var challanType = "order";
 
@@ -341,7 +276,6 @@ class GenerateChallan extends React.Component {
       cartAssetIds = cartAssetIds.concat(element.assetId);
     });
 
-    // console.log('draft id: ', this.props.selectedDraftId)
     if (this.props.selectedDraftId !== undefined) {
       // modify the selected challan draft in database
       fetchAPI("/challan/modify_challan_draft", {
@@ -412,7 +346,6 @@ class GenerateChallan extends React.Component {
       .then(data => {
         if (data.isSuccess) {
           // let the status of the assets be back to 1 (in stock), because booking is cancelled
-          // console.log(`/reset_inventory_status?data=${JSON.stringify(cartAssetIds)}`)
           fetchAPI("/asset/reset_inventory_status", { data: cartAssetIds })
             .then(r => r.json())
             .then(data => {
@@ -481,8 +414,6 @@ class GenerateChallan extends React.Component {
     // convert request to json string
     let jsonRequestData = JSON.stringify(requestData);
 
-    // console.log('request data = ', jsonRequestData)
-
     // if status is damaged set status to 3 in db
     if (this.state.selectedChallanType === "damaged") {
       // if its draft page submission
@@ -544,8 +475,6 @@ class GenerateChallan extends React.Component {
                         if (data.isSuccess) {
                           notify.success("submitted draft");
                           this.setState({ printChallan: true });
-                          //this.setState({last_challan_number: data.last_challan_number})
-                          //console.log("data.last_challan_number ="+data.last_challan_number)
                         }
                       });
                   }
@@ -1009,26 +938,6 @@ class GenerateChallan extends React.Component {
           {this.renderCustomerTable()}
           <Divider />
           <br />
-          <Form>
-            <Form.Group>
-              {/*<Form.Input label="Rent Start Date">
-								<DatePicker  dateFormat="DD/MM/YYYY" 
-								onChange={this.onChangeRentStartDate}
-								selected={moment(this.state.rentStartDate)} 							
-								/>
-							</Form.Input> 
-	
-							{/* <Form.Select
-								onChange={this.onChangeBranch}
-								value={this.state.selectedBranch}
-								size="small"
-								label="Branch"
-								style={{ maxWidth: "400px" }}
-								placeholder="Select Branch"
-								options={branchOptions} 
-							/> */}
-            </Form.Group>
-          </Form>
           <div
             style={{
               width: "100%",
@@ -1144,7 +1053,6 @@ class GenerateChallan extends React.Component {
           <Table.HeaderCell>Rend End Date</Table.HeaderCell>
           <Table.HeaderCell>Payment Mode*</Table.HeaderCell>
           <Table.HeaderCell>Price*</Table.HeaderCell>
-          {/* <Table.HeaderCell>Total Unit price</Table.HeaderCell> */}
           <Table.HeaderCell>Tax Type</Table.HeaderCell>
           <Table.HeaderCell>Tax %</Table.HeaderCell>
           <Table.HeaderCell>Total Price with tax</Table.HeaderCell>
@@ -1195,7 +1103,6 @@ class GenerateChallan extends React.Component {
                   onChange={this.onChangeUnitPrice(idx)}
                 />
               </Table.Cell>
-              {/* <Table.Cell>{obj.totalUnitPrice}</Table.Cell> */}
               <Table.Cell>
                 <Form.Select
                   onChange={this.onChangeTaxType}
@@ -1230,8 +1137,6 @@ class GenerateChallan extends React.Component {
           <Table.HeaderCell />
           <Table.HeaderCell />
           <Table.HeaderCell />
-          {/* <Table.HeaderCell></Table.HeaderCell> */}
-          {/* <Table.HeaderCell></Table.HeaderCell> */}
           <Table.HeaderCell>Total Price</Table.HeaderCell>
           <Table.HeaderCell>₹{this.calculateTotalUnitPrice()}</Table.HeaderCell>
           <Table.HeaderCell />
