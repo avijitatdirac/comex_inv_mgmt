@@ -17,6 +17,7 @@ router.post("/get_customer", (req, res) => {
   const qrGetCust = "SELECT * FROM  customer";
   const qrGetCustLoc =
     "SELECT cl.* FROM  customer as c, customer_location_master as cl where c.Customer_Id=cl.Customer_Id";
+  let customerDetails = [];
   connection.query(qrGetCust, (error, results) => {
     if (error) {
       res.status(501).json({ isSuccess: false, error: error });
