@@ -93,6 +93,16 @@ app.get("*", function(req, res) {
 app.listen(PORT, () => console.log("server started on port " + PORT));
 
 /**
+ * handle uncaughtException to stop server from crashing.
+ * NOTE: preety bad way of exception handling,
+ * usually add some unnoticed bug in the application
+ * should be removed if possible
+ */
+// process.on("uncaughtException", err => {
+//   console.log("uncaughtException handler: ", err);
+// });
+
+/**
  *
  *
  *
