@@ -64,11 +64,16 @@ class SideMenu extends React.Component {
                   <i className="angle right icon" />Organization
                 </a>
               </li>
-              {/* <li>
-                <a href="/listOrgnization">
-                  <i className="angle right icon" />List Organization
+              <li>
+                <a href="/branch">
+                  <i className="angle right icon" />Branch
                 </a>
-              </li> */}
+              </li>
+              <li>
+                <a href="/roles">
+                  <i className="angle right icon" />Roles
+                </a>
+              </li>
             </ul>
           </span>
           <a

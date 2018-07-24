@@ -850,7 +850,7 @@ class InsertCustomer extends Component {
                 </Button>
                 {idx === this.state.customerAddress.length - 1 ? (
                   <Button onClick={this.handleAddressAdd(idx)}>
-                    <Icon name="plus" />Add More
+                    <Icon name="plus" />Add Branch
                   </Button>
                 ) : (
                   undefined
