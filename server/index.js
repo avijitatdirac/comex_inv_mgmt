@@ -39,6 +39,7 @@ const challan = require("./routes/challan");
 const branch = require("./routes/branch");
 const user = require("./routes/user");
 const organization = require("./routes/organization");
+const roles = require("./routes/roles");
 
 /**
  * serve all static files without any session authentication
@@ -54,7 +55,7 @@ app.use("/login", login);
 /**
  * authenticate all request to check if user has valid session
  */
-app.use(auth);
+// app.use(auth);
 
 /**
  * all router added after main authentication module
@@ -69,6 +70,7 @@ app.use("/challan", challan);
 app.use("/branch", branch);
 app.use("/user", user);
 app.use("/organization", organization);
+app.use("/roles", roles);
 
 /**
  *
