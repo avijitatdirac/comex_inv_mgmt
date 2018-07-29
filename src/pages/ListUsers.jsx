@@ -204,6 +204,8 @@ class ListUsers extends Component {
                   <Table.HeaderCell>Role</Table.HeaderCell>
                   <Table.HeaderCell>Branch</Table.HeaderCell>
                 </Table.Row>
+              </Table.Header>
+              <Table.Body>
                 {this.state.userListFiltered.map(user => (
                   <Table.Row>
                     <Table.Cell>{user.first_name}</Table.Cell>
@@ -225,7 +227,7 @@ class ListUsers extends Component {
                     </Table.Cell>
                   </Table.Row>
                 ))}
-              </Table.Header>
+              </Table.Body>
             </Table>
           </Segment>
         </Dimmer.Dimmable>

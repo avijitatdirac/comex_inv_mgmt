@@ -71,7 +71,7 @@ class SideMenu extends React.Component {
               </li>
               <li>
                 <a href="/roles">
-                  <i className="angle right icon" />Roles
+                  <i className="angle right icon" />Roles and Privileges
                 </a>
               </li>
             </ul>
