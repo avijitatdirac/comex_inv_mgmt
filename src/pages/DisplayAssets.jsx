@@ -32,7 +32,7 @@ class DisplayAssets extends Component {
     super(props);
 
     this.state = {
-      selectedCategory: "Please select Asset Type",
+      selectedCategory: "",
       categoryOptions: [],
       assetTypeAttributes: [],
       selectedItemId: null,
@@ -155,7 +155,7 @@ class DisplayAssets extends Component {
   async fetchUsersLocation() {
     try {
       const res = await fetchAPI("/user/get_user_location", {});
-      const data = res.json();
+      const data = await res.json();
       const selectedBranch = data.branch_id;
       this.setState({ selectedBranch });
     } catch (err) {
@@ -167,10 +167,10 @@ class DisplayAssets extends Component {
     try {
       const res = await fetchAPI("/asset/get_asset", {});
       const data = await res.json();
-      console.log(data);
-      const p = JSON.parse(data);
+      // console.log(data);
+      // const p = JSON.parse(data);
       let categoryOptions = [];
-      p.results.forEach(r => {
+      data.results.forEach(r => {
         categoryOptions.push({
           key: r.id,
           id: r.id,
@@ -185,7 +185,6 @@ class DisplayAssets extends Component {
   }
 
   componentDidMount = () => {
-    console.log(this.state.selectedCategory);
     this.fetchBranches();
     this.fetchUsersLocation();
     this.fetchAssets();
@@ -268,7 +267,7 @@ class DisplayAssets extends Component {
               {this.renderCartButton()}
             </div>
             <Divider />
-            <Form>
+            <div>
               {this.state.selectedCategory !== "Please select Asset Type" ? (
                 this.DynamicAttributesForm()
               ) : (
@@ -277,7 +276,7 @@ class DisplayAssets extends Component {
                   <br />
                 </div>
               )}
-            </Form>
+            </div>
             <Divider />
             <div
               style={{ width: "100%", overflowX: "auto", overflowY: "hidden" }}
