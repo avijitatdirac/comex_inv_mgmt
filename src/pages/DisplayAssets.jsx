@@ -21,12 +21,6 @@ import {
 import { notify } from "../Classes";
 import { fetchAPI } from "../utility";
 
-// const branchOptions = [
-//   { key: "a", text: "Pune", value: "Pune" },
-//   { key: "b", text: "Bangalore", value: "Bangalore" },
-//   { key: "c", text: "Kolkata", value: "Kolkata" }
-// ];
-
 class DisplayAssets extends Component {
   constructor(props) {
     super(props);

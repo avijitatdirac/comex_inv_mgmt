@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const connection = require("../connection");
 const { queryDatabaseWithPromise } = require("./utility");
+
 router.post("/get_user_list", (req, res) => {
   const qry = `select 
                   first_name,
@@ -88,6 +89,34 @@ router.post("/save_user_details", (req, res) => {
       res.status(200).json({ message: "success" });
     }
   });
+});
+
+router.post("/get_user_privileges", (req, res) => {
+  const email = req.session.email_address;
+  const qry = `SELECT 
+                u.email_address,
+                u.role_id,
+                r.role_name,
+                m.privilege_id,
+                p.privilege_name
+              FROM
+                user_role_privilege_mapping m
+                    JOIN
+                user_roles r ON m.role_id = r.role_id
+                    JOIN
+                users u ON m.role_id = u.role_id
+                    JOIN
+                user_privileges p ON m.privilege_id = p.id
+              WHERE
+                u.email_address = ?`;
+  queryDatabaseWithPromise(connection, qry, [email])
+    .then(result => {
+      res.status(200).json({ result });
+    })
+    .catch(err => {
+      console.error(err);
+      res.status(503).json({ error: err });
+    });
 });
 
 module.exports = router;
