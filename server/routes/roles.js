@@ -93,4 +93,16 @@ router.post("/save_roles", (req, res) => {
     });
 });
 
+router.post("/get_user_roles", (req, res) => {
+  const qry = `select role_id, role_name from user_roles`;
+  queryDatabaseWithPromise(connection, qry, [])
+    .then(result => {
+      res.status(200).json({ roles: result });
+    })
+    .catch(err => {
+      console.error(err);
+      res.status(503).json({ error: err });
+    });
+});
+
 module.exports = router;

@@ -20,7 +20,7 @@ class ListUsers extends Component {
       roleId: "",
       dimmerActive: false,
       branchOptions: [],
-      customerRoles: [],
+      userRoles: [],
       userList: [],
       userListFiltered: []
     };
@@ -32,21 +32,21 @@ class ListUsers extends Component {
   }
 
   componentDidMount() {
-    this.fetchCustRoles();
+    this.fetchUserRoles();
     this.fetchBranchNames();
     this.fetchUserList();
   }
 
-  async fetchCustRoles() {
+  async fetchUserRoles() {
     try {
-      const res = await fetchAPI("/cust/get_customer_roles", {});
+      const res = await fetchAPI("/roles/get_user_roles", {});
       const data = await res.json();
-      const customerRoles = data.customerRoles.map(role => ({
-        key: role.customer_role_id,
-        value: role.customer_role_id,
-        text: role.customer_role_name
+      const userRoles = data.roles.map(role => ({
+        key: role.role_id,
+        value: role.role_id,
+        text: role.role_name
       }));
-      this.setState({ customerRoles });
+      this.setState({ userRoles });
     } catch (err) {
       console.error(err);
     }
@@ -181,7 +181,7 @@ class ListUsers extends Component {
                   label="Role"
                   placeholder="Select Role"
                   name="role"
-                  options={this.state.customerRoles}
+                  options={this.state.userRoles}
                 />
                 <Form.Select
                   onChange={this.filterByBranch}
@@ -207,23 +207,21 @@ class ListUsers extends Component {
               </Table.Header>
               <Table.Body>
                 {this.state.userListFiltered.map(user => (
-                  <Table.Row>
+                  <Table.Row key={user.email_address}>
                     <Table.Cell>{user.first_name}</Table.Cell>
                     <Table.Cell>{user.last_name}</Table.Cell>
                     <Table.Cell>{user.email_address}</Table.Cell>
                     <Table.Cell>
-                      {
-                        this.state.customerRoles.filter(
+                      {this.state.userRoles.length > 0 &&
+                        this.state.userRoles.filter(
                           role => role.value === user.role_id
-                        )[0].text
-                      }
+                        )[0].text}
                     </Table.Cell>
                     <Table.Cell>
-                      {
+                      {this.state.branchOptions.length > 0 &&
                         this.state.branchOptions.filter(
                           branch => branch.value === user.branch_id
-                        )[0].text
-                      }
+                        )[0].text}
                     </Table.Cell>
                   </Table.Row>
                 ))}

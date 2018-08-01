@@ -21,7 +21,7 @@ class AddUsers extends Component {
       password: "",
       branchId: "",
       roleId: "",
-      customerRoles: [],
+      userRoles: [],
       branchOptions: [],
       dimmerActive: false,
       isError: false,
@@ -34,20 +34,20 @@ class AddUsers extends Component {
   }
 
   componentDidMount() {
-    this.fetchCustRoles();
+    this.fetchUserRoles();
     this.fetchBranchNames();
   }
 
-  async fetchCustRoles() {
+  async fetchUserRoles() {
     try {
-      const res = await fetchAPI("/cust/get_customer_roles", {});
+      const res = await fetchAPI("/roles/get_user_roles", {});
       const data = await res.json();
-      const customerRoles = data.customerRoles.map(role => ({
-        key: role.customer_role_id,
-        value: role.customer_role_id,
-        text: role.customer_role_name
+      const userRoles = data.roles.map(role => ({
+        key: role.role_id,
+        value: role.role_id,
+        text: role.role_name
       }));
-      this.setState({ customerRoles });
+      this.setState({ userRoles });
     } catch (err) {
       console.error(err);
     }
@@ -240,7 +240,7 @@ class AddUsers extends Component {
                 label="Role"
                 placeholder="Select Role"
                 name="role"
-                options={this.state.customerRoles}
+                options={this.state.userRoles}
               />
               <Form.Select
                 className="required"
