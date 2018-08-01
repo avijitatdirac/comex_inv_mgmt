@@ -29,10 +29,8 @@ router.post(CHECK_LOGIN, (req, res) => {
                   username, 
                   first_name, 
                   last_name, 
-                  dept_id, 
                   role_id, 
                   email_address, 
-                  company_id, 
                   user_status, 
                   branch_id 
               from users 
@@ -53,8 +51,9 @@ router.post(CHECK_LOGIN, (req, res) => {
         .json({ message: "Invalid username or password", is_success: false });
     } else {
       const result = results[0];
-      const { username } = result;
+      const { username, email_address } = result;
       req.session.username = username;
+      req.session.email_address = email_address;
       console.log(req.session);
       res.status(200).json({ message: "success", is_success: true, ...result });
     }

@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const connection = require("../connection");
-
+const { queryDatabaseWithPromise } = require("./utility");
 router.post("/get_user_list", (req, res) => {
   const qry = `select 
                   first_name,
@@ -17,6 +17,24 @@ router.post("/get_user_list", (req, res) => {
       res.status(200).json({ userList: result });
     }
   });
+});
+
+router.post("/get_user_location", (req, res) => {
+  const qry = `select branch_id from users where email_address = ?`;
+  const email = req.session.email_address;
+  queryDatabaseWithPromise(connection, qry, [email])
+    .then(result => {
+      if (result && result.length > 0) {
+        res.status(200).json({ branch_id: result[0].branch_id });
+      } else {
+        res
+          .status(503)
+          .json({ branch_id: 0, message: "Internal service error" });
+      }
+    })
+    .catch(err => {
+      console.error(err);
+    });
 });
 
 router.post("/save_user_details", (req, res) => {

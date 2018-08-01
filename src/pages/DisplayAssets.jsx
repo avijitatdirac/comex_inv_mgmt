@@ -21,11 +21,11 @@ import {
 import { notify } from "../Classes";
 import { fetchAPI } from "../utility";
 
-const branchOptions = [
-  { key: "a", text: "Pune", value: "Pune" },
-  { key: "b", text: "Bangalore", value: "Bangalore" },
-  { key: "c", text: "Kolkata", value: "Kolkata" }
-];
+// const branchOptions = [
+//   { key: "a", text: "Pune", value: "Pune" },
+//   { key: "b", text: "Bangalore", value: "Bangalore" },
+//   { key: "c", text: "Kolkata", value: "Kolkata" }
+// ];
 
 class DisplayAssets extends Component {
   constructor(props) {
@@ -60,6 +60,7 @@ class DisplayAssets extends Component {
         }
       ],
 
+      branchOptions: [],
       selectedBranch: "",
 
       // names of all static table attribures
@@ -76,9 +77,6 @@ class DisplayAssets extends Component {
         "Transfer Order No",
         "Transfer Order Date"
       ],
-      // tableHeaders : [
-      // 	"Choice","Asset ID" ,"Make", "Warranty End Date", "Serial No", "Purchase Date", "Purchase Price", "Procurement Date", "Status", "Part Code", "Branch", "Transfer Order No","Transfer Order Date"
-      // ],
 
       // temporary array to hold table data (used for filter)
       tableDataInitial: [
@@ -136,37 +134,88 @@ class DisplayAssets extends Component {
     }; // end of this.state
   } // end of constructor
 
+  async fetchBranches() {
+    try {
+      const res = await fetchAPI("/branch/get_branch_names", {});
+      const data = await res.json();
+      let branchOptions = [];
+      data.branchNames.forEach(branch => {
+        branchOptions.push({
+          key: branch.id,
+          value: branch.id,
+          text: branch.name
+        });
+      });
+      this.setState({ branchOptions });
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  async fetchUsersLocation() {
+    try {
+      const res = await fetchAPI("/user/get_user_location", {});
+      const data = res.json();
+      const selectedBranch = data.branch_id;
+      this.setState({ selectedBranch });
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  async fetchAssets() {
+    try {
+      const res = await fetchAPI("/asset/get_asset", {});
+      const data = await res.json();
+      console.log(data);
+      const p = JSON.parse(data);
+      let categoryOptions = [];
+      p.results.forEach(r => {
+        categoryOptions.push({
+          key: r.id,
+          id: r.id,
+          text: r.type_name,
+          value: r.type_name
+        });
+      });
+      this.setState({ categoryOptions });
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
   componentDidMount = () => {
     console.log(this.state.selectedCategory);
-    // let user = JSON.parse(localStorage.getItem("user"));
-    // setTimeout(() => {
-    //   this.setState({ selectedBranch: user.branch });
-    // }, 200);
+    this.fetchBranches();
+    this.fetchUsersLocation();
+    this.fetchAssets();
   };
+
   // database operations
-  componentWillMount = () => {
-    fetchAPI("/asset/get_asset", {})
-      .then(r => r.json())
-      .then(data => {
-        // parsing json data (need to verify later)
-        var i;
-        var s = JSON.stringify(data, null, 2);
-        var r = JSON.parse(s);
-        for (i = 0; i < r.results.length; i++) {
-          this.setState({
-            categoryOptions: this.state.categoryOptions.concat([
-              {
-                key: r.results[i].id,
-                id: r.results[i].id,
-                text: r.results[i].type_name,
-                value: r.results[i].type_name
-              }
-            ])
-          });
-        }
-      })
-      .catch(err => console.log(err));
-  };
+  // componentWillMount = () => {
+  //   fetchAPI("/asset/get_asset", {})
+  //     .then(r => r.json())
+  //     .then(data => {
+  //       // parsing json data (need to verify later)
+  //       var i;
+  //       var s = JSON.stringify(data, null, 2);
+  //       var r = JSON.parse(s);
+  //       for (i = 0; i < r.results.length; i++) {
+  //         this.setState({
+  //           categoryOptions: this.state.categoryOptions.concat([
+  //             {
+  //               key: r.results[i].id,
+  //               id: r.results[i].id,
+  //               text: r.results[i].type_name,
+  //               value: r.results[i].type_name
+  //             }
+  //           ])
+  //         });
+  //       }
+  //     })
+  //     .catch(err => console.log(err));
+  // };
+
   // render main page
   render() {
     const { dimmerActive } = this.state;
@@ -607,7 +656,7 @@ class DisplayAssets extends Component {
           label="Choose Branch to Display Asset From: "
           style={{ maxWidth: "400px" }}
           placeholder="Select Branch"
-          options={branchOptions}
+          options={this.state.branchOptions}
         />
       </Form>
       <Divider />
