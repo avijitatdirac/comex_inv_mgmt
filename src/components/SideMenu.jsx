@@ -162,6 +162,11 @@ class SideMenu extends React.Component {
                     <i className="angle right icon" />Roles and Privileges
                   </a>
                 </li>
+                <li>
+                  <a href="/vendors">
+                    <i className="angle right icon" />Manage Vendor
+                  </a>
+                </li>
               </ul>
             </span>
           ) : (

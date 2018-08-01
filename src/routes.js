@@ -88,6 +88,11 @@ const Roles = Loadable({
   loading: Loading
 });
 
+const Vendors = Loadable({
+  loader: () => import("./pages/Vendors"),
+  loading: Loading
+});
+
 const routes = [
   { path: "/", exact: true, name: "dashboard", component: DefaultLayout },
   { path: "/addAsset", name: "AddAsset", component: AddAsset },
@@ -129,7 +134,8 @@ const routes = [
     component: ListOrgnization
   },
   { path: "/branch", name: "Branch", component: Branch },
-  { path: "/roles", name: "Roles", component: Roles }
+  { path: "/roles", name: "Roles", component: Roles },
+  { path: "/vendors", name: "Vendors", component: Vendors }
 ];
 
 export default routes;
