@@ -16,10 +16,6 @@ import {
 import moment from "moment";
 import { notify } from "../Classes";
 import { fetchAPI } from "../utility";
-//import RadioForm, {RadioButton, RadioButtonInput, RadioButtonLabel} from 'react-native-simple-radio-button';
-/*TO DO
-Manage Returned from Repair Assets
-*/
 
 class ReturnAssets extends Component {
   constructor(props) {
@@ -384,10 +380,6 @@ class ReturnAssets extends Component {
                 orderid: dynadata[i].oid
               }
             ])
-            // selectedcheckboxasset:this.state.selectedcheckboxasset.concat([{
-            //     id:dynadata[i].asset_id,
-            //     status:'1'
-            // }])
           });
         }
       })
@@ -726,8 +718,6 @@ class ReturnAssets extends Component {
   };
 
   commentsSet = () => {
-    // console.log(this.state.selectedcheckboxasset)
-    // console.log(this.state.tableDataInitial)
     var arrchk = this.state.selectedcheckboxasset;
     var arrtbl = this.state.tableDataInitial;
     var arrod = [];
@@ -1075,6 +1065,9 @@ class ReturnAssets extends Component {
             }}
           >
             <Icon name="broken chain" />Manage Damaged Components{" "}
+          </Button>
+          <Button color="olive" onClick={this.onAcceptRepairedComponent}>
+            <Icon name="podcast" />Accept Repaired Component
           </Button>
         </Button.Group>
         <Segment attached>

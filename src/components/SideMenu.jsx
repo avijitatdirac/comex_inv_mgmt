@@ -25,6 +25,38 @@ class SideMenu extends React.Component {
     try {
       const res = await fetchAPI("/user/get_user_privileges", {});
       const data = await res.json();
+
+      /**
+       * below code block will show all side menu links in development env,
+       * side menu will show up according to user's privileges in production env,
+       * NOTE: this portion of code can be left as it is in production build as well
+       */
+      if (
+        process.env.NODE_ENV === "development" &&
+        (!data.result || data.result.length === 0)
+      ) {
+        const isDashboard = true;
+        const isAddCustomer = true;
+        const isManageCustomer = true;
+        const isAddToInventory = true;
+        const isOrderAsset = true;
+        const isEditAssetType = true;
+        const isManageInventory = true;
+        const isSavedChallanDrafts = true;
+        const isSettings = true;
+        this.setState({
+          isDashboard,
+          isAddCustomer,
+          isManageCustomer,
+          isAddToInventory,
+          isOrderAsset,
+          isEditAssetType,
+          isManageInventory,
+          isSettings,
+          isSavedChallanDrafts
+        });
+        return;
+      }
       const isDashboard =
         findIndex(data.result, { privilege_id: 1 }) > -1 ? true : false;
       const isAddCustomer =
