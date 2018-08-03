@@ -56,7 +56,7 @@ app.use("/login", login);
 /**
  * authenticate all request to check if user has valid session
  */
-// app.use(auth);
+app.use(auth);
 
 /**
  * all router added after main authentication module
@@ -102,9 +102,9 @@ app.listen(PORT, () => console.log("server started on port " + PORT));
  * usually add some unnoticed bug in the application
  * should be removed if possible
  */
-// process.on("uncaughtException", err => {
-//   console.log("uncaughtException handler: ", err);
-// });
+process.on("uncaughtException", err => {
+  console.log("uncaughtException handler: ", err);
+});
 
 /**
  *

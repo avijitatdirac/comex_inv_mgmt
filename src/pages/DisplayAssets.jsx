@@ -184,31 +184,6 @@ class DisplayAssets extends Component {
     this.fetchAssets();
   };
 
-  // database operations
-  // componentWillMount = () => {
-  //   fetchAPI("/asset/get_asset", {})
-  //     .then(r => r.json())
-  //     .then(data => {
-  //       // parsing json data (need to verify later)
-  //       var i;
-  //       var s = JSON.stringify(data, null, 2);
-  //       var r = JSON.parse(s);
-  //       for (i = 0; i < r.results.length; i++) {
-  //         this.setState({
-  //           categoryOptions: this.state.categoryOptions.concat([
-  //             {
-  //               key: r.results[i].id,
-  //               id: r.results[i].id,
-  //               text: r.results[i].type_name,
-  //               value: r.results[i].type_name
-  //             }
-  //           ])
-  //         });
-  //       }
-  //     })
-  //     .catch(err => console.log(err));
-  // };
-
   // render main page
   render() {
     const { dimmerActive } = this.state;
@@ -406,9 +381,6 @@ class DisplayAssets extends Component {
     fetchAPI("/asset/get_all_values", { type_name: data.value })
       .then(r => r.json())
       .then(data => {
-        console.log(data);
-        // parsing json data (need to verify later)
-        //"Choice","Asset ID" ,"Make", "Warranty End Date", "Serial No", "Purchase Date", "Purchase Price", "Procurement Date", "Status", "Part Code", "Branch", "Transfer Order No","Transfer Order Date"
         this.setState({
           assetTypeAttributes: [],
           tableHeaders: [
@@ -430,16 +402,10 @@ class DisplayAssets extends Component {
 
         var jsn_hsnCode = JSON.stringify(data.hsnResult, null, 2);
         var hsnArr = JSON.parse(jsn_hsnCode);
-        //console.log("JSON.stringify(data.hsn_result) = "+jsn_hsnCode);
         var hsnarr = hsnArr.length;
         for (let i = 0; i < hsnarr; i++) {
-          //console.log("JSON.stringify(data.hsn_result) = "+hsnarr);
-          // this.state.hsnCode = hsnArr[i].hsnCode;
           this.setState({ hsnCode: hsnArr[i].hsnCode });
         }
-
-        //this.state.hsnCode=JSON.stringify(data.hsnResult)[0].hsnCode;
-
         var i;
         var dyna = JSON.stringify(data.dyna, null, 2);
         var stat = JSON.stringify(data.static, null, 2);
@@ -674,7 +640,7 @@ class DisplayAssets extends Component {
       <Form>
         <Grid columns={7}>
           {this.state.assetTypeAttributes.map((attribute, idx) => (
-            <Grid.Column>
+            <Grid.Column key={idx}>
               <Form.Input
                 label={attribute.name}
                 type="text"
@@ -742,8 +708,8 @@ class DisplayAssets extends Component {
                       <Table.Cell>{obj.transferOrderDate}</Table.Cell>
                       {/* inflate the dynamic data here */}
 
-                      {obj.dynaData.map(obj2 => (
-                        <Table.Cell>{obj2.value}</Table.Cell>
+                      {obj.dynaData.map((obj2, idx) => (
+                        <Table.Cell key={idx}>{obj2.value}</Table.Cell>
                       ))}
                     </Table.Row>
                   );
@@ -806,8 +772,8 @@ class DisplayAssets extends Component {
                       <Table.Cell>{obj.transferOrderNo}</Table.Cell>
                       <Table.Cell>{obj.transferOrderDate}</Table.Cell>
                       {/* inflate the dynamic data here */}
-                      {obj.dynaData.map(obj2 => (
-                        <Table.Cell>{obj2.value}</Table.Cell>
+                      {obj.dynaData.map((obj2, idx) => (
+                        <Table.Cell key={idx}>{obj2.value}</Table.Cell>
                       ))}
                     </Table.Row>
                   );
@@ -931,17 +897,6 @@ class DisplayAssets extends Component {
     this.state.cartItems.forEach(element => {
       cartAssetIds = cartAssetIds.concat(element.assetId);
     });
-
-    //let jsonCartItems = JSON.stringify(this.state.cartAssetIds)
-
-    // TODO: Disabled for debugging
-    // fetch(`/change_inventory_status?data=${jsonCartItems}`,
-    // { method: 'GET' })
-    // .then(r => r.json())
-    // .then(data => {
-    // })
-    // .catch(err => console.log(err))
-
     this.setState({ isChallanGenerated: true });
   };
 
@@ -1213,11 +1168,17 @@ class DisplayAssets extends Component {
   };
 
   filterBranch = () => {
-    //console.log(this.state.tableData)
-    var value = this.state.selectedBranch;
-    let data = this.state.tableDataInitial.slice();
-    let tableData = data.filter(
-      obj => obj.branch.toLowerCase().indexOf(value.toLowerCase()) !== -1
+    if (!this.state.selectedBranch) {
+      return;
+    }
+    if (this.state.branchOptions.length === 0) {
+      return;
+    }
+    const branchName = this.state.branchOptions.filter(
+      br => br.value === this.state.selectedBranch
+    )[0].text;
+    const tableData = this.state.tableDataInitial.filter(
+      v => v.branch.toLowerCase() === branchName.toLowerCase()
     );
     this.setState({ tableData });
   };

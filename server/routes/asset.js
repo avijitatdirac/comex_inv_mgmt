@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const connection = require("../connection");
+const { queryDatabaseWithPromise } = require("./utility");
 
 router.post("/get_asset", (req, res) => {
   const qry = "select id,type_name from asset_types";
@@ -548,25 +549,16 @@ router.post("/change_status_on_return", (req, res) => {
 });
 
 router.post("/reset_inventory_status", (req, res) => {
-  var i;
-  var qry = "update asset set status=1 where id=? ";
-  var check = JSON.parse(req.body.data);
-  //console.log(check)
-  // console.log('query is: ',req.query)
-  for (i = 0; i < check.length; i++) {
-    connection.query(qry, [check[i]], (error, results, fields) => {
-      if (error) {
-        res.status(501).json({
-          isSuccess: false,
-          error: error
-        });
-        return;
-      }
+  const qry = `update asset set status = 1 where id in (?)`;
+  const data = req.body.data;
+  queryDatabaseWithPromise(connection, qry, [data])
+    .then(result => {
+      res.status(200).json({ isSuccess: true });
+    })
+    .catch(err => {
+      console.error(err);
+      res.status(503).json({ isSuccess: false, error: err });
     });
-  }
-  res.status(200).json({
-    isSuccess: true
-  });
 });
 
 router.post("/change_inventory_status", (req, res) => {
@@ -615,6 +607,38 @@ router.post("/update_warranty", (req, res) => {
       });
     }
   });
+});
+
+router.post("/search_by_serial_no", (req, res) => {
+  const serial_nos = req.body.serial_nos;
+  let list = serial_nos
+    .split(",")
+    .map(v => v.trim())
+    .filter(v => v);
+  const qry = `SELECT 
+              a.id AS asset_id,
+              a.serial_no,
+              a.asset_type_id,
+              t.type_name,
+              a.make,
+              a.hsnCode as hsn_code,
+              a.part_code,
+              a.branch
+            FROM
+              asset a
+                  JOIN
+              asset_types t ON a.asset_type_id = t.id
+            WHERE
+              serial_no IN (?)`;
+  console.log(list);
+  queryDatabaseWithPromise(connection, qry, [list])
+    .then(result => {
+      res.status(200).json({ assets: result });
+    })
+    .catch(err => {
+      console.error(err);
+      res.status(503).json({ message: err });
+    });
 });
 
 module.exports = router;

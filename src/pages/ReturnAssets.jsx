@@ -11,7 +11,10 @@ import {
   Icon,
   Header,
   Segment,
-  Label
+  Label,
+  Input,
+  Checkbox,
+  Message
 } from "semantic-ui-react";
 import moment from "moment";
 import { notify } from "../Classes";
@@ -22,9 +25,10 @@ class ReturnAssets extends Component {
     super(props);
     this.state = {
       damageComments: "",
-      returnedAssetState: true,
+      returnedAssetState: false,
       modifiedAssetState: false,
       damagedAssetState: false,
+      acceptRepairedAssetState: true,
       customerList: [],
       customerDetails: [],
       selectedCustomerId: "",
@@ -128,7 +132,13 @@ class ReturnAssets extends Component {
       // dimmer
       dimmerActive: false,
       customerAddressDetails: [],
-      selectedorderids: []
+      selectedorderids: [],
+
+      repairedAssetSerialNo: "",
+      repairedAssetList: [],
+      acceptRepairedAssets: [],
+      isSaving: false,
+      addToInventorySuccessMessage: ""
     };
   }
 
@@ -985,15 +995,6 @@ class ReturnAssets extends Component {
         />
         <Divider />
         {this.renderCategoryDropdown()}
-        <div>
-          {/*this.state.selectedCategory === '' ? (
-						<Label basic color="red" pointing>
-							Please enter a valid Asset Type
-						</Label>
-					) : (
-						undefined
-					)*/}
-        </div>
       </Form>
     </Segment>
   );
@@ -1015,70 +1016,226 @@ class ReturnAssets extends Component {
     this.setState({ tableData });
   };
 
+  async searchRepairedAssetOnEnter(e) {
+    if (e.keyCode !== 13) {
+      return;
+    }
+
+    const { repairedAssetSerialNo } = this.state;
+    if (!repairedAssetSerialNo) {
+      return;
+    }
+
+    this.setState({ addToInventorySuccessMessage: "" });
+    try {
+      const res = await fetchAPI("/asset/search_by_serial_no", {
+        serial_nos: repairedAssetSerialNo
+      });
+      const data = await res.json();
+      if (data.assets) {
+        this.setState({
+          repairedAssetList: data.assets,
+          acceptRepairedAssets: []
+        });
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  onChangeAcceptRepairedAsset(e, data) {
+    const { assetId, checked } = data;
+    let acceptRepairedAssets = this.state.acceptRepairedAssets.slice();
+    if (checked) {
+      acceptRepairedAssets.push(assetId);
+    } else {
+      const idx = acceptRepairedAssets.indexOf(assetId);
+      if (idx >= 0) {
+        acceptRepairedAssets.splice(idx, 1);
+      }
+    }
+    this.setState({ acceptRepairedAssets });
+  }
+
+  async onAddToInventory() {
+    try {
+      this.setState({ isSaving: true });
+      const res = await fetchAPI("/asset/reset_inventory_status", {
+        data: this.state.acceptRepairedAssets
+      });
+      const data = await res.json();
+      if (data.isSuccess) {
+        const addToInventorySuccessMessage =
+          "Selected Components are successfully added to inventory.";
+        const isSaving = false;
+        const acceptRepairedAssets = [];
+        this.setState({
+          isSaving,
+          acceptRepairedAssets,
+          addToInventorySuccessMessage
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      this.setState({ isSaving: false });
+    }
+  }
+
+  showAcceptRepairedAssetPage() {
+    return (
+      <div style={{ minHeight: "100vh" }}>
+        <Segment>
+          <Header as="h5">
+            <Icon name="search" />
+            <Header.Content>Search By Serial Number:</Header.Content>
+          </Header>
+          <Input
+            placeholder="Enter comma separated serial nos"
+            fluid
+            focus
+            icon="search"
+            value={this.state.repairedAssetSerialNo}
+            onChange={e =>
+              this.setState({ repairedAssetSerialNo: e.target.value })
+            }
+            onKeyUp={this.searchRepairedAssetOnEnter.bind(this)}
+          />
+          <br />
+          <Divider />
+          <Table>
+            <Table.Header>
+              <Table.Row>
+                <Table.HeaderCell />
+                <Table.HeaderCell>Serial No</Table.HeaderCell>
+                <Table.HeaderCell>Category</Table.HeaderCell>
+                <Table.HeaderCell>Make</Table.HeaderCell>
+                <Table.HeaderCell>Part Code</Table.HeaderCell>
+                <Table.HeaderCell>HSN Code</Table.HeaderCell>
+                <Table.HeaderCell>Branch</Table.HeaderCell>
+              </Table.Row>
+            </Table.Header>
+            <Table.Body>
+              {this.state.repairedAssetList.map(asset => (
+                <Table.Row key={asset.asset_id}>
+                  <Table.Cell>
+                    <Checkbox
+                      assetId={asset.asset_id}
+                      checked={
+                        this.state.acceptRepairedAssets.indexOf(
+                          asset.asset_id
+                        ) >= 0
+                      }
+                      onChange={this.onChangeAcceptRepairedAsset.bind(this)}
+                    />
+                  </Table.Cell>
+                  <Table.Cell>{asset.serial_no}</Table.Cell>
+                  <Table.Cell>{asset.type_name}</Table.Cell>
+                  <Table.Cell>{asset.make}</Table.Cell>
+                  <Table.Cell>{asset.part_code}</Table.Cell>
+                  <Table.Cell>{asset.hsn_code}</Table.Cell>
+                  <Table.Cell>{asset.branch}</Table.Cell>
+                </Table.Row>
+              ))}
+            </Table.Body>
+            <Table.Footer fullWidth>
+              <Table.Row>
+                <Table.HeaderCell colSpan={7}>
+                  <Button
+                    floated="left"
+                    icon
+                    labelPosition="left"
+                    primary
+                    size="small"
+                    disabled={this.state.acceptRepairedAssets.length === 0}
+                    onClick={this.onAddToInventory.bind(this)}
+                  >
+                    <Icon name="add circle" /> Add To Inventory
+                  </Button>
+                </Table.HeaderCell>
+              </Table.Row>
+            </Table.Footer>
+          </Table>
+          {this.state.addToInventorySuccessMessage ? (
+            <Message
+              positive
+              content={this.state.addToInventorySuccessMessage}
+            />
+          ) : (
+            false
+          )}
+        </Segment>
+      </div>
+    );
+  }
+
+  onClickButtonGroup(btn) {
+    const returnedAssetState = btn === 1 ? true : false;
+    const modifiedAssetState = btn === 2 ? true : false;
+    const damagedAssetState = btn === 3 ? true : false;
+    const acceptRepairedAssetState = btn === 4 ? true : false;
+    this.setState({
+      returnedAssetState,
+      modifiedAssetState,
+      damagedAssetState,
+      acceptRepairedAssetState
+    });
+
+    if (btn === 2) {
+      this.callModifiedData();
+    }
+
+    if (btn === 3) {
+      this.callDamagedData();
+    }
+  }
+
+  renderButtonGroup() {
+    return (
+      <Button.Group attached="top">
+        <Button color="green" onClick={() => this.onClickButtonGroup(1)}>
+          <Icon name="configure" />Manage Returned Assets
+        </Button>
+        <Button color="blue" onClick={() => this.onClickButtonGroup(2)}>
+          <Icon name="plug" />Manage Modified Components
+        </Button>
+        <Button color="teal" onClick={() => this.onClickButtonGroup(3)}>
+          <Icon name="broken chain" />Manage Damaged Components
+        </Button>
+        <Button color="olive" onClick={() => this.onClickButtonGroup(4)}>
+          <Icon name="podcast" />Accept Repaired Component
+        </Button>
+      </Button.Group>
+    );
+  }
+
+  renderMainSegment() {
+    if (this.state.returnedAssetState) {
+      return this.showReturnedAssetPage();
+    }
+
+    if (this.state.returnedAssetState) {
+      return this.showReturnedAssetPage();
+    }
+
+    if (this.state.modifiedAssetState) {
+      return this.showModifiedAssetPage();
+    }
+
+    if (this.state.damagedAssetState) {
+      return this.showDamagedAssetPage();
+    }
+
+    if (this.state.acceptRepairedAssetState) {
+      return this.showAcceptRepairedAssetPage();
+    }
+  }
+
   render() {
     //console.log(this.state)
     return (
       <div>
-        <Button.Group attached="top">
-          <Button
-            color="green"
-            onClick={() => {
-              this.setState({
-                returnedAssetState: true,
-                modifiedAssetState: false,
-                damagedAssetState: false
-              });
-            }}
-          >
-            <Icon name="configure" />Manage Returned Assets
-          </Button>
-          <Button
-            color="blue"
-            onClick={() => {
-              this.setState(
-                {
-                  modifiedAssetState: true,
-                  returnedAssetState: false,
-                  damagedAssetState: false,
-                  assetList: [],
-                  assetDetails: []
-                },
-                this.callModifiedData
-              );
-            }}
-          >
-            <Icon name="plug" />Manage Modified Components{" "}
-          </Button>
-          <Button
-            color="teal"
-            onClick={() => {
-              this.setState(
-                {
-                  damagedAssetState: true,
-                  modifiedAssetState: false,
-                  returnedAssetState: false,
-                  damageList: [],
-                  damageDetails: []
-                },
-                this.callDamagedData
-              );
-            }}
-          >
-            <Icon name="broken chain" />Manage Damaged Components{" "}
-          </Button>
-          <Button color="olive" onClick={this.onAcceptRepairedComponent}>
-            <Icon name="podcast" />Accept Repaired Component
-          </Button>
-        </Button.Group>
-        <Segment attached>
-          <div>
-            {this.state.returnedAssetState
-              ? this.showReturnedAssetPage()
-              : this.state.modifiedAssetState
-                ? this.showModifiedAssetPage()
-                : this.showDamagedAssetPage()}
-          </div>
-        </Segment>
+        {this.renderButtonGroup()}
+        <Segment attached>{this.renderMainSegment()}</Segment>
       </div>
     );
   }

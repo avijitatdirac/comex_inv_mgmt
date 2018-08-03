@@ -197,7 +197,7 @@ class Vendors extends Component {
         <Table.Row>
           <Table.HeaderCell colSpan={5}>
             <Button
-              floated="right"
+              floated="left"
               icon
               labelPosition="left"
               primary
