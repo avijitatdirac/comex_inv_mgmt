@@ -65,27 +65,29 @@ router.post("/save_roles", (req, res) => {
         }
       });
     } else {
-      queryDatabaseWithPromise(connection, insertRole, [role.role_name])
-        .then(result => {
-          const roleId = result.insertId;
-          Object.keys(role.privileges).forEach(key => {
-            if (role.privileges[key]) {
-              const p = queryDatabaseWithPromise(connection, insertPrivilege, [
-                roleId,
-                key
-              ]);
-              allPromises.push(p);
-            }
+      if (role.role_name) {
+        queryDatabaseWithPromise(connection, insertRole, [role.role_name])
+          .then(result => {
+            const roleId = result.insertId;
+            Object.keys(role.privileges).forEach(key => {
+              if (role.privileges[key]) {
+                const p = queryDatabaseWithPromise(
+                  connection,
+                  insertPrivilege,
+                  [roleId, key]
+                );
+                allPromises.push(p);
+              }
+            });
+          })
+          .catch(err => {
+            console.error(err);
           });
-        })
-        .catch(err => {
-          console.error(err);
-        });
+      }
     }
   });
   Promise.all(allPromises)
     .then(data => {
-      // console.log(data);
       res.status(200).json({ message: "success" });
     })
     .catch(err => {

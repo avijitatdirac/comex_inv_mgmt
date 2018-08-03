@@ -1,9 +1,6 @@
 // check session information to find if user has valid login
 
 const auth = function(req, res, next) {
-  console.log(req.url);
-  console.log("username in session: ", req.session.username);
-  console.log(req.session);
   if (req.session.username) {
     next();
   } else {
