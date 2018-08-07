@@ -25,10 +25,10 @@ class ReturnAssets extends Component {
     super(props);
     this.state = {
       damageComments: "",
-      returnedAssetState: false,
+      returnedAssetState: true,
       modifiedAssetState: false,
       damagedAssetState: false,
-      acceptRepairedAssetState: true,
+      acceptRepairedAssetState: false,
       customerList: [],
       customerDetails: [],
       selectedCustomerId: "",
@@ -561,7 +561,7 @@ class ReturnAssets extends Component {
     this.setState({ damageComments: event.target.value });
 
   renderTable() {
-    var { dimmerActive } = this.state;
+    const { dimmerActive } = this.state;
     return (
       <div>
         <Dimmer.Dimmable as={Segment} dimmed={dimmerActive}>
@@ -583,9 +583,6 @@ class ReturnAssets extends Component {
               {this.state.tableData.map((obj, idx) => (
                 <Table.Row key={obj.unique} style={{ cursor: "pointer" }}>
                   <Table.Cell key={idx + "thisCell"}>
-                    {/*<FormRadio style={{backgroundColor:'white'}}
-                        onClick={this.checkedAssetsProper.bind(this,obj.assetid,obj)}/>*/}
-
                     <Form.Field>
                       <Radio
                         key={obj.unique + "this"}
@@ -603,9 +600,6 @@ class ReturnAssets extends Component {
                     </Form.Field>
                   </Table.Cell>
                   <Table.Cell key={obj.unique + "thatChel"}>
-                    {/*<FormRadio style={{backgroundColor:'white'}}
-                            onClick={this.checkedAssetsDamaged.bind(this,obj.assetid,obj)}/>*/}
-
                     {
                       <Form.Field>
                         <Radio
@@ -651,13 +645,8 @@ class ReturnAssets extends Component {
           </Table>
           <div>
             <center>
-              <Button
-                width="100px"
-                color="blue"
-                onClick={this.spliceNullCheck}
-                label="Return"
-              >
-                <Icon name="add circle" />
+              <Button width="100px" color="blue" onClick={this.spliceNullCheck}>
+                <Icon name="add circle" />Return
               </Button>
             </center>
           </div>
@@ -1066,7 +1055,7 @@ class ReturnAssets extends Component {
       const data = await res.json();
       if (data.isSuccess) {
         const addToInventorySuccessMessage =
-          "Selected Components are successfully added to inventory.";
+          "Selected Components are successfully added to inventory as available items.";
         const isSaving = false;
         const acceptRepairedAssets = [];
         this.setState({
@@ -1149,7 +1138,7 @@ class ReturnAssets extends Component {
                     disabled={this.state.acceptRepairedAssets.length === 0}
                     onClick={this.onAddToInventory.bind(this)}
                   >
-                    <Icon name="add circle" /> Add To Inventory
+                    <Icon name="add circle" /> Mark As Available
                   </Button>
                 </Table.HeaderCell>
               </Table.Row>

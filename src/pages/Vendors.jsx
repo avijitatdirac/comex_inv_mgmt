@@ -97,7 +97,10 @@ class Vendors extends Component {
       vendor_id: id,
       vendor_name: "",
       address: "",
-      contact_no: ""
+      contact_no: "",
+      email: "",
+      gst_no: "",
+      pan_no: ""
     };
     let vendors = this.state.vendors.slice();
     let rowsInEditMode = this.state.rowsInEditMode.slice();
@@ -114,6 +117,9 @@ class Vendors extends Component {
           <Table.HeaderCell>Vendor Name</Table.HeaderCell>
           <Table.HeaderCell>Address</Table.HeaderCell>
           <Table.HeaderCell>Contact No</Table.HeaderCell>
+          <Table.HeaderCell>Email</Table.HeaderCell>
+          <Table.HeaderCell>GST</Table.HeaderCell>
+          <Table.HeaderCell>PAN</Table.HeaderCell>
           <Table.HeaderCell />
         </Table.Row>
       </Table.Header>
@@ -142,6 +148,9 @@ class Vendors extends Component {
         <Table.Cell>{vendor.vendor_name}</Table.Cell>
         <Table.Cell>{vendor.address}</Table.Cell>
         <Table.Cell>{vendor.contact_no}</Table.Cell>
+        <Table.Cell>{vendor.email}</Table.Cell>
+        <Table.Cell>{vendor.gst_no}</Table.Cell>
+        <Table.Cell>{vendor.pan_no}</Table.Cell>
         <Table.Cell>
           <Button primary onClick={() => this.onClickEdit(vendor)}>
             Edit
@@ -183,6 +192,33 @@ class Vendors extends Component {
           />
         </Table.Cell>
         <Table.Cell>
+          <Input
+            placeholder="Enter Vendor email"
+            value={vendor.email}
+            onChange={e =>
+              this.changeVendorField(vendor, "email", e.target.value)
+            }
+          />
+        </Table.Cell>
+        <Table.Cell>
+          <Input
+            placeholder="Enter Vendor GST"
+            value={vendor.gst_no}
+            onChange={e =>
+              this.changeVendorField(vendor, "gst_no", e.target.value)
+            }
+          />
+        </Table.Cell>
+        <Table.Cell>
+          <Input
+            placeholder="Enter Vendor PAN"
+            value={vendor.pan_no}
+            onChange={e =>
+              this.changeVendorField(vendor, "pan_no", e.target.value)
+            }
+          />
+        </Table.Cell>
+        <Table.Cell>
           <Button positive onClick={() => this.onSave(vendor)}>
             Save
           </Button>
@@ -195,7 +231,7 @@ class Vendors extends Component {
     return (
       <Table.Footer fullWidth>
         <Table.Row>
-          <Table.HeaderCell colSpan={5}>
+          <Table.HeaderCell colSpan={8}>
             <Button
               floated="left"
               icon
