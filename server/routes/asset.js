@@ -729,7 +729,7 @@ router.post("/change_inventory_status", (req, res) => {
   const maxChallanNoQuery = `select max(challan_number) last_challan from order_master`;
   // var last_challan_number = "";
 
-  const check = JSON.parse(req.body.data);
+  const check = req.body.data;
   const allPromises = [];
   check.forEach(c => {
     const params = [c];
