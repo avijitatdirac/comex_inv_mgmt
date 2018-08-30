@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const connection = require("../connection");
+const { queryDatabaseWithPromise } = require("./utility");
 
 router.post("/order_create", (req, res) => {
   var jsonData = req.body.data;
@@ -32,85 +33,125 @@ router.post("/order_create", (req, res) => {
   var deliveryPersonName = data.deliveryPersonName;
   var comment = data.comment;
   var cartAssetDetails = data.cartAssetDetails;
-  var last_challan_number = "";
+  // var last_challan_number = "";
 
-  // console.log('\n***CArt:', cartAssetDetails)
+  let allPromises = [];
+  const params = [
+    orderDate,
+    customerId,
+    totalAmount,
+    customerLocationId,
+    parentChallanId,
+    ueaNumber,
+    po,
+    poReference,
+    cnNumber,
+    deliveryPersonName,
+    comment
+  ];
+  const p = queryDatabaseWithPromise(connection, qInsertOrderMaster, params);
+  allPromises.push(p);
 
-  connection.beginTransaction(function(err) {
-    if (err) {
-      throw err;
-    }
-    connection.query(
-      qInsertOrderMaster,
-      [
-        orderDate,
-        customerId,
-        totalAmount,
-        customerLocationId,
-        parentChallanId,
-        ueaNumber,
-        po,
-        poReference,
-        cnNumber,
-        deliveryPersonName,
-        comment
-      ],
-      (error, results, fields) => {
-        if (error) {
-          res.status(501).json({
-            isSuccess: false,
-            error: error
-          });
-          return connection.rollback();
-          return;
-          //check1
-        } else {
-          // console.log(cartAssetDetails[0].assetId)
-          //order_id,asset_id,serial_number,rental_period,unit_price,gst_value,total_value
-          for (i = 0; i < cartAssetDetails.length; i++) {
-            // console.log('cart asset: ', cartAssetDetails[i].assetId)
-            connection.query(
-              qInsertOrderDetails,
-              [
-                cartAssetDetails[i].assetId,
-                cartAssetDetails[i].rentalBeginDate,
-                cartAssetDetails[i].rentalEndDate,
-                cartAssetDetails[i].dailyUnitPrice,
-                cartAssetDetails[i].currentProcurementPrice,
-                cartAssetDetails[i].totalUnitPrice,
-                cartAssetDetails[i].gstValue,
-                cartAssetDetails[i].totalValue,
-                cartAssetDetails[i].status
-              ],
-              (errro, results, fields) => {
-                // console.log('erf: ', error,results,fields)
-                if (error) {
-                  // return connection.rollback();
-
-                  return connection.rollback();
-                  return;
-                }
-                //console.log(cartAssetDetails[i].assetId,cartAssetDetails[i].serialNo,cartAssetDetails[i].unitPrice,cartAssetDetails[i].gst,cartAssetDetails[i].totalPrice)
-              }
-            );
-          }
-        }
-      }
-    );
-    connection.commit(function(err) {
-      if (err) {
-        res.status(501).json({
-          isSuccess: false,
-          error: error
-        });
-        return connection.rollback();
-      } else {
-        res.status(200).json({
-          isSuccess: true
-        });
-      }
-    });
+  cartAssetDetails.forEach(element => {
+    const param = [
+      element.assetId,
+      element.rentalBeginDate,
+      element.rentalEndDate,
+      element.dailyUnitPrice,
+      element.currentProcurementPrice,
+      element.totalUnitPrice,
+      element.gstValue,
+      element.totalValue,
+      element.status
+    ];
+    const pr = queryDatabaseWithPromise(connection, qInsertOrderDetails, param);
+    allPromises.push(param);
   });
+
+  Promise.all(allPromises)
+    .then(data => {
+      res.status(200).json({ isSuccess: true });
+    })
+    .catch(err => {
+      console.error(err);
+      res.status(503).json({ error: err });
+    });
+
+  // connection.beginTransaction(function(err) {
+  //   if (err) {
+  //     throw err;
+  //   }
+  //   connection.query(
+  //     qInsertOrderMaster,
+  //     [
+  //       orderDate,
+  //       customerId,
+  //       totalAmount,
+  //       customerLocationId,
+  //       parentChallanId,
+  //       ueaNumber,
+  //       po,
+  //       poReference,
+  //       cnNumber,
+  //       deliveryPersonName,
+  //       comment
+  //     ],
+  //     (error, results, fields) => {
+  //       if (error) {
+  //         res.status(501).json({
+  //           isSuccess: false,
+  //           error: error
+  //         });
+  //         return connection.rollback();
+  //         return;
+  //         //check1
+  //       } else {
+  //         // console.log(cartAssetDetails[0].assetId)
+  //         //order_id,asset_id,serial_number,rental_period,unit_price,gst_value,total_value
+  //         for (i = 0; i < cartAssetDetails.length; i++) {
+  //           // console.log('cart asset: ', cartAssetDetails[i].assetId)
+  //           connection.query(
+  //             qInsertOrderDetails,
+  //             [
+  //               cartAssetDetails[i].assetId,
+  //               cartAssetDetails[i].rentalBeginDate,
+  //               cartAssetDetails[i].rentalEndDate,
+  //               cartAssetDetails[i].dailyUnitPrice,
+  //               cartAssetDetails[i].currentProcurementPrice,
+  //               cartAssetDetails[i].totalUnitPrice,
+  //               cartAssetDetails[i].gstValue,
+  //               cartAssetDetails[i].totalValue,
+  //               cartAssetDetails[i].status
+  //             ],
+  //             (errro, results, fields) => {
+  //               // console.log('erf: ', error,results,fields)
+  //               if (error) {
+  //                 // return connection.rollback();
+
+  //                 return connection.rollback();
+  //                 return;
+  //               }
+  //               //console.log(cartAssetDetails[i].assetId,cartAssetDetails[i].serialNo,cartAssetDetails[i].unitPrice,cartAssetDetails[i].gst,cartAssetDetails[i].totalPrice)
+  //             }
+  //           );
+  //         }
+  //       }
+  //     }
+  //   );
+  //   connection.commit(function(err) {
+  //     if (err) {
+  //       res.status(501).json({
+  //         isSuccess: false,
+  //         error: error
+  //       });
+  //       return connection.rollback();
+  //     } else {
+  //       res.status(200).json({
+  //         isSuccess: true
+  //       });
+  //     }
+  //   });
+  // });
 });
 
 router.post("/get_customer_order_details", (req, res) => {

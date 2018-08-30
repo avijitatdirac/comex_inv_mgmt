@@ -24,7 +24,6 @@ router.post(CHECK_LOGIN, (req, res) => {
   const password = req.body.password;
   console.log(email);
   console.log(password);
-
   const qry = `select 
                   username, 
                   first_name, 
