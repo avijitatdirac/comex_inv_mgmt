@@ -136,9 +136,6 @@ router.post("/modify_asset_type", (req, res) => {
   const type_name = req.body.type_name;
   const attributes = req.body.attributes;
 
-  // let assetIds = [];
-  // let insAttribId = "";
-
   const qry = `insert into asset_types_attributes(asset_type_id,attr_name,is_modifiable,is_mandatory,is_active,create_timestamp,update_timestamp,is_printable) values ((select id from asset_types where type_name = ?),?,?,?,true,null,null,?)`;
 
   // fetch all the asset ids for which modification is required
@@ -198,69 +195,6 @@ router.post("/modify_asset_type", (req, res) => {
       res.status(503).json({ error: err });
       return;
     });
-
-  // connection.beginTransaction(function(err) {
-  //   if (err) {
-  //     throw err;
-  //   }
-
-  //   // insert new attributes
-  //   for (var i = 0; i < length; i++) {
-  //     connection.query(qry, [
-  //       type_name,
-  //       jsonData[i].name,
-  //       jsonData[i].isMandatory,
-  //       jsonData[i].isModifiable,
-  //       jsonData[i].isPrintable
-  //     ]);
-  //     // console.log(`insert into asset_types_attributes(asset_type_id,attr_name,is_modifiable,is_mandatory,is_active,create_timestamp,update_timestamp) values ((select id from asset_types where type_name = ${type_name}),${jsonData[i].name},${jsonData[i].isMandatory},${jsonData[i].isModifiable},true,null,null)`)
-  //     // insert here
-
-  //     // getting attribute id
-  //     connection.query(qGetAttribId, (error, results, fields) => {
-  //       if (!error) {
-  //         insAttribId = results[0].attribute_id;
-  //       } else {
-  //         res.status(200).json({
-  //           results: error
-  //         });
-  //       }
-  //     });
-  //     // getting asset ids
-  //     connection.query(qGetAssetIds, [type_name], (error, results, fields) => {
-  //       if (!error) {
-  //         // query success, we obtained the asset id fields
-
-  //         assetIds = results;
-  //         assetIds.forEach(element => {
-  //           // insert black attribute for each asset in this asset-type
-  //           connection.query(qInsertAssetDetails, [
-  //             element.id,
-  //             insAttribId,
-  //             ""
-  //           ]);
-  //         });
-  //       } else {
-  //         res.status(200).json({
-  //           results: error
-  //         });
-  //       }
-  //     });
-  //   }
-
-  //   connection.commit(function(err) {
-  //     if (err) {
-  //       res.status(501).json({
-  //         isSuccess: "false"
-  //       });
-  //       return connection.rollback();
-  //     } else if (!err) {
-  //       res.status(200).json({
-  //         isSuccess: "true"
-  //       });
-  //     }
-  //   });
-  // });
 });
 
 router.post("/get_all_asset", (req, res) => {
@@ -324,29 +258,6 @@ router.post("/get_all_values", (req, res) => {
       console.error(err);
       res.status(503).json({ error: err });
     });
-
-  //   connection.query(qry, [type_name], (error, results) => {
-  //   if (error) {
-  //     res.status(200).json({ isSuccess: false, error: error });
-  //   } else {
-  //     x = results;
-  //   }
-  // });
-  // connection.query(hsnCodeQuery, [type_name], (error, results) => {
-  //   if (error) {
-  //     res.status(200).json({ isSuccess: false, error: error });
-  //   } else {
-  //     hsn_result = results;
-  //   }
-  // });
-  // connection.query(qry1, [type_name], (error, results) => {
-  //   res.status(201).json({
-  //     isSuccess: true,
-  //     dyna: results,
-  //     static: x,
-  //     hsnResult: hsn_result
-  //   });
-  // });
 });
 
 router.post("/get_asset_type_customer_name", (req, res) => {
@@ -404,32 +315,6 @@ router.post("/get_all_modifiable_values", (req, res) => {
       console.error(err);
       res.status(503).json({ isSuccess: false, error: err });
     });
-
-  // connection.query(qry, [type_name], (error, results, fields) => {
-  //   if (error) {
-  //     res.status(200).json({
-  //       isSuccess: false,
-  //       error: error
-  //     });
-  //     return;
-  //   } else {
-  //     x = results;
-  //   }
-  // });
-  // connection.query(qry1, [type_name], (error, results, fields) => {
-  //   if (error) {
-  //     res.status(501).json({
-  //       isSuccess: error
-  //     });
-  //     return;
-  //   } else {
-  //     res.status(201).json({
-  //       isSuccess: true,
-  //       dyna: results,
-  //       static: x
-  //     });
-  //   }
-  // });
 });
 
 router.post("/change_config_status", (req, res) => {
@@ -473,24 +358,6 @@ router.post("/get_out_of_stock_assets", (req, res) => {
       console.error(err);
       res.status(503).json({ error: err });
     });
-
-  // connection.query(qGetStatic, (error, results, fields) => {
-  //   if (error) {
-  //     res.status(200).json({
-  //       isSuccess: false,
-  //       error: error
-  //     });
-  //   } else {
-  //     staticData = results;
-  //   }
-  // });
-  // connection.query(qGetDynamic, (error, results, fields) => {
-  //   res.status(201).json({
-  //     isSuccess: true,
-  //     static: staticData,
-  //     dynamic: results
-  //   });
-  // });
 });
 
 router.post("/damaged_assets", (req, res) => {
@@ -563,73 +430,6 @@ router.post("/insert_asset_value", (req, res) => {
       console.error(err);
       res.status(503).json({ error: err });
     });
-
-  // connection.beginTransaction(function(err) {
-  //   if (err) {
-  //     throw err;
-  //   }
-  //   connection.query(
-  //     qryAsset,
-  //     [
-  //       typeName,
-  //       static.serialNo,
-  //       static.purchaseDate,
-  //       static.purchasePrice,
-  //       static.supplier,
-  //       static.warehouseLocation,
-  //       static.procurementDate,
-  //       static.status,
-  //       static.partCode,
-  //       static.make,
-  //       static.warrantyEndDate,
-  //       static.transferOrder,
-  //       static.comment,
-  //       static.supplierInvoiceNo,
-  //       static.supplierInvoiceDate,
-  //       static.branch,
-  //       static.transferOrderDate,
-  //       static.hsnCode
-  //     ],
-  //     (error, results, fields) => {
-  //       if (error) {
-  //         // console.log('query 1 fail')
-  //         res.status(501).json({
-  //           isSuccess: false,
-  //           error: error
-  //         });
-  //         return connection.rollback();
-  //         //return;
-  //       } else {
-  //         for (i = 0; i < dynamic.length; i++) {
-  //           // console.log('query 2')
-  //           connection.query(
-  //             qryAssetDetails,
-  //             [static.serialNo, dynamic[i].id, dynamic[i].value],
-  //             (error, results, fields) => {
-  //               if (error) {
-  //                 res.status(501).json({
-  //                   isSuccess: false,
-  //                   error: error
-  //                 });
-  //                 return connection.rollback();
-  //                 return;
-  //               }
-  //             }
-  //           );
-  //         }
-  //         res.status(200).json({
-  //           isSuccess: true
-  //         });
-  //       }
-  //     }
-  //   );
-
-  //   connection.commit(function(err) {
-  //     if (err) {
-  //       return connection.rollback();
-  //     }
-  //   });
-  // });
 });
 
 router.post("/send_for_repair", (req, res) => {
@@ -687,60 +487,6 @@ router.post("/change_status_on_return", (req, res) => {
       console.error(err);
       res.status(503).json({ isSuccess: false });
     });
-
-  // connection.beginTransaction(function(err) {
-  //   if (err) {
-  //     throw err;
-  //   }
-  //   for (var i = 0; i < assetUpdates.length; i++) {
-  //     // var str ="update asset set status = "+assetUpdates[i].status+", comments= concat(coalesce(comments, ''),' ',"+assetUpdates[i].comments+") where id = "+assetUpdates[i].id
-
-  //     connection.query(
-  //       qUpdateAsset,
-  //       [assetUpdates[i].status, assetUpdates[i].comments, assetUpdates[i].id],
-  //       (error, results, response) => {
-  //         if (error) {
-  //           // console.log('***error: ', error)
-  //           res.status(501).json({
-  //             error
-  //           });
-  //           return connection.rollback();
-  //           return;
-  //         }
-  //       }
-  //     );
-  //   }
-
-  //   for (var i = 0; i < orderUpdates.length; i++) {
-  //     // console.log('***order: ', orderUpdates[i])
-  //     connection.query(
-  //       qUpdateOrder,
-  //       [orderUpdates[i]],
-  //       (error, results, response) => {
-  //         if (error) {
-  //           // console.log('***error2: ', error)
-  //           res.status(501).json({
-  //             error
-  //           });
-  //           return connection.rollback();
-  //           return;
-  //         }
-  //       }
-  //     );
-  //   }
-  //   connection.commit(function(err) {
-  //     if (err) {
-  //       res.status(501).json({
-  //         error: err
-  //       });
-  //       return connection.rollback();
-  //     } else {
-  //       res.status(200).json({
-  //         isSuccess: true
-  //       });
-  //     }
-  //   });
-  // });
 });
 
 router.post("/reset_inventory_status", (req, res) => {
@@ -787,26 +533,6 @@ router.post("/change_inventory_status", (req, res) => {
       console.error(err);
       res.status(503).json({ isError: err });
     });
-
-  // for (i = 0; i < check.length; i++) {
-  //   connection.query(qry, [check[i]], (error, results, fields) => {
-  //     if (error) {
-  //       res.status(501).json({
-  //         isSuccess: false,
-  //         error: error
-  //       });
-  //       return;
-  //     }
-  //   });
-  // }
-  // connection.query(maxChallanNoQuery, (error, results, fields) => {
-  //   last_challan_number = results;
-  //   console.log("last_challan_number=" + JSON.stringify(last_challan_number));
-  //   res.status(200).json({
-  //     isSuccess: true,
-  //     last_challan_number
-  //   });
-  // });
 });
 
 router.post("/update_warranty", (req, res) => {
