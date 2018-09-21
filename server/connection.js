@@ -17,9 +17,9 @@ const pool = mysql.createPool(DB_CONFIG);
 
 // log pool event for DEBUGGING
 pool.on("acquire", function(connection) {
-  console.log("Connection %d acquired", connection.threadId);
-  console.log("All Connections: ", pool._allConnections.length);
-  console.log("Free Connections: ", pool._freeConnections.length);
+  // console.log("Connection %d acquired", connection.threadId);
+  // console.log("All Connections: ", pool._allConnections.length);
+  // console.log("Free Connections: ", pool._freeConnections.length);
 });
 
 pool.on("connection", function(connection) {
@@ -27,9 +27,9 @@ pool.on("connection", function(connection) {
 });
 
 pool.on("release", function(connection) {
-  console.log("Connection %d released", connection.threadId);
-  console.log("All Connections: ", pool._allConnections.length);
-  console.log("Free Connections: ", pool._freeConnections.length);
+  // console.log("Connection %d released", connection.threadId);
+  // console.log("All Connections: ", pool._allConnections.length);
+  // console.log("Free Connections: ", pool._freeConnections.length);
 });
 
 function connectDatabase() {
