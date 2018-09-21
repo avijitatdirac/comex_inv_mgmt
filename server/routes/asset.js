@@ -53,52 +53,84 @@ router.post("/get_asset_status_count", (req, res) => {
     });
 });
 
-// router.post("/insert_asset_type", (req, res) => {
-//   var type_name = req.body.type_name;
-//   var attributes = req.body.attributes;
-//   var jsonData = JSON.parse(attributes);
-//   var length = jsonData.length;
-//   var i;
-//   var qry =
-//     "insert into asset_types(type_name,is_active,create_timestamp,update_timestamp) values (?,true,null,null)";
-//   var qry2 = `insert into asset_types_attributes(asset_type_id,attr_name,is_modifiable,is_mandatory,is_active,create_timestamp,update_timestamp,is_printable) values ((select id from asset_types where id=(SELECT MAX(id) from asset_types)),?,?,?,true,null,null,?)`;
-//   connection.beginTransaction(function(err) {
-//     if (err) {
-//       throw err;
-//     }
-//     //check1
-//     connection.query(qry, [type_name], (error, results, fields) => {
-//       if (!error) {
-//         res.status(200).json({
-//           results: "success"
-//         });
-//         for (i = 0; i < length; i++) {
-//           connection.query(qry2, [
-//             jsonData[i].name,
-//             jsonData[i].isMandatory,
-//             jsonData[i].isModifiable,
-//             jsonData[i].isPrintable
-//           ]);
-//         }
-//       } else {
-//         if (error) {
-//           if (error.errno === 1062) {
-//             res.status(501).json({
-//               is_Error: true
-//             });
-//           }
-//           return connection.rollback();
-//           return;
-//         }
-//       }
-//     });
-//     connection.commit(function(err) {
-//       if (err) {
-//         return connection.rollback();
-//       }
-//     });
-//   });
-// });
+/**
+ * API endpoint for inserting new asset type and its attribute
+ */
+router.post("/insert_asset_type", (req, res) => {
+  const { type_name, attributes } = req.body;
+  const assetTypeInsertQry = `insert into 
+                                asset_types (
+                                  type_name,
+                                  is_active,
+                                  create_timestamp,
+                                  update_timestamp 
+                                ) values (
+                                  ?,
+                                  1,
+                                  current_timestamp,
+                                  current_timestamp
+                                )`;
+
+  const assetTypeAttrInsQry = `insert into 
+                                  asset_types_attributes(
+                                    asset_type_id,
+                                    attr_name,
+                                    is_modifiable,
+                                    is_mandatory,
+                                    is_printable,
+                                    is_active,
+                                    create_timestamp,
+                                    update_timestamp
+                                  ) values (
+                                    ?,
+                                    ?,
+                                    ?,
+                                    ?,
+                                    ?,
+                                    1,
+                                    current_timestamp,
+                                    current_timestamp
+                                  )`;
+  const assetTypeParams = [type_name];
+  const assetTypePromise = queryDatabaseWithPromise(
+    connection,
+    assetTypeInsertQry,
+    assetTypeParams
+  );
+  assetTypePromise
+    .then(result => {
+      const insertId = result.insertId;
+      let allPromises = [];
+      attributes.forEach(attr => {
+        const params = [
+          insertId,
+          attr.name,
+          attr.isModifiable,
+          attr.isMandatory,
+          attr.isPrintable
+        ];
+        const attrInsPromise = queryDatabaseWithPromise(
+          connection,
+          assetTypeAttrInsQry,
+          params
+        );
+        allPromises.push(attrInsPromise);
+      });
+
+      Promise.all(allPromises)
+        .then(results => {
+          res.status(200).json({ results: "success" });
+        })
+        .catch(err => {
+          console.error(err);
+          res.status(503).json({ error: err });
+        });
+    })
+    .catch(err => {
+      console.error(err);
+      res.status(503).json({ error: err });
+    });
+});
 
 router.post("/modify_asset_type", (req, res) => {
   const type_name = req.body.type_name;
