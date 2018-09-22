@@ -183,6 +183,9 @@ router.post("/insert_vendor", (req, res) => {
       }
       let allPromises = [];
       alternateContactInfo.forEach(contact => {
+        if (contact.is_active !== 1) {
+          return;
+        }
         const params = [insertId, contact.name, contact.email, contact.phone];
         allPromises.push(queryDatabaseWithPromise(conn, contactQry, params));
       });
@@ -311,7 +314,10 @@ router.post("/update_vendor", (req, res) => {
       };
 
       alternateContactInfo.forEach(contact => {
-        if (contact.operation === "UPDATE" && contact.id) {
+        if (contact.is_active !== 1) {
+          return;
+        }
+        if (contact.operation === "UPDATE" && contact.id && contact.id > 0) {
           updateContact(contact);
         } else {
           insertContact(contact);
