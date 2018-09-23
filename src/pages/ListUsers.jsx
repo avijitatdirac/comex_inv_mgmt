@@ -219,9 +219,13 @@ class ListUsers extends Component {
                     </Table.Cell>
                     <Table.Cell>
                       {this.state.branchOptions.length > 0 &&
-                        this.state.branchOptions.filter(
-                          branch => branch.value === user.branch_id
-                        )[0].text}
+                      this.state.branchOptions.filter(
+                        branch => branch.value === user.branch_id
+                      ).length > 0
+                        ? this.state.branchOptions.filter(
+                            branch => branch.value === user.branch_id
+                          )[0].text
+                        : ""}
                     </Table.Cell>
                   </Table.Row>
                 ))}
