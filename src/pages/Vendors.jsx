@@ -87,7 +87,7 @@ class Vendors extends Component {
         <Table.Cell>{vendor.gst}</Table.Cell>
         <Table.Cell>{vendor.cin}</Table.Cell>
         <Table.Cell>{vendor.city}</Table.Cell>
-        <Table.Cell>{vendor.mainContactName}</Table.Cell>
+        <Table.Cell>{vendor.mainContactPersonName}</Table.Cell>
       </Table.Row>
     );
   }

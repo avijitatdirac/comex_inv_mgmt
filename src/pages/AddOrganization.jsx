@@ -192,10 +192,6 @@ class AddOrganization extends Component {
     if (!this.state.panNumber) {
       errorList.push("PAN is Required.");
     }
-    // check PAN as it is required field
-    if (!this.state.panNumber) {
-      errorList.push("PAN is Required.");
-    }
     // check GST as it is required field
     if (!this.state.gst) {
       errorList.push("GST is Required.");

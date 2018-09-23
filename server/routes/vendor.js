@@ -13,7 +13,7 @@ router.post("/get_vendors", (req, res) => {
                       gst,
                       cin,
                       city,
-                      main_contact_name
+                      main_contact_name as mainContactPersonName
                 from vendors`;
   queryDatabaseWithPromise(conn, qry, [])
     .then(vendors => {
@@ -40,9 +40,9 @@ router.post("/get_vendor_details", (req, res) => {
                       city,
                       state,
                       pin,
-                      main_contact_name as mainContactName,
-                      main_contact_email as mainContactEmail,
-                      main_contact_phone as mainContactPhone
+                      main_contact_name as mainContactPersonName,
+                      main_contact_email as mainContactPersonEmail,
+                      main_contact_phone as mainContactPersonPhone
                 from vendors
                 where id = ?`;
 
@@ -61,6 +61,7 @@ router.post("/get_vendor_details", (req, res) => {
   // sanity check data
   if (!id) {
     res.status(503).json({ error: "id is required" });
+    return;
   }
 
   let allPromises = [];
@@ -143,9 +144,9 @@ router.post("/insert_vendor", (req, res) => {
     city,
     state,
     pin,
-    mainContactName,
-    mainContactEmail,
-    mainContactPhone
+    mainContactPersonName,
+    mainContactPersonEmail,
+    mainContactPersonPhone
   } = req.body;
 
   // sanity check data, return if name is not present
@@ -170,9 +171,9 @@ router.post("/insert_vendor", (req, res) => {
     city,
     state,
     pin,
-    mainContactName,
-    mainContactEmail,
-    mainContactPhone
+    mainContactPersonName,
+    mainContactPersonEmail,
+    mainContactPersonPhone
   ];
 
   queryDatabaseWithPromise(conn, qry, qryParams)
@@ -183,6 +184,7 @@ router.post("/insert_vendor", (req, res) => {
       }
       let allPromises = [];
       alternateContactInfo.forEach(contact => {
+        // ignore if is_active is 0
         if (contact.is_active !== 1) {
           return;
         }
@@ -190,7 +192,7 @@ router.post("/insert_vendor", (req, res) => {
         allPromises.push(queryDatabaseWithPromise(conn, contactQry, params));
       });
       Promise.all(allPromises).then(results => {
-        res.status(200).json({ success: true });
+        res.status(200).json({ success: true, id: insertId });
       });
     })
     .catch(err => {
@@ -255,14 +257,14 @@ router.post("/update_vendor", (req, res) => {
     city,
     state,
     pin,
-    mainContactName,
-    mainContactEmail,
-    mainContactPhone
+    mainContactPersonName,
+    mainContactPersonEmail,
+    mainContactPersonPhone
   } = req.body;
 
   // sanity check data
   if (!id) {
-    res.status(200).json({ success: false, error: "id is required" });
+    res.status(503).json({ success: false, error: "id is required" });
     return;
   }
 
@@ -283,9 +285,9 @@ router.post("/update_vendor", (req, res) => {
     city,
     state,
     pin,
-    mainContactName,
-    mainContactEmail,
-    mainContactPhone,
+    mainContactPersonName,
+    mainContactPersonEmail,
+    mainContactPersonPhone,
     id
   ];
 
@@ -295,9 +297,16 @@ router.post("/update_vendor", (req, res) => {
       let allPromises = [];
       // for inserting new contact
       const insertContact = contact => {
-        const params = [id, contact.name, contact.email, contact.phone];
-        const promise = queryDatabaseWithPromise(conn, contactInsQry, params);
-        allPromises.push(promise);
+        // exit when is_active = 0
+        if (contact.is_active !== 1) {
+          return;
+        }
+        // insert only if one of name, email, phone exists
+        if (contact.name || contact.email || contact.phone) {
+          const params = [id, contact.name, contact.email, contact.phone];
+          const promise = queryDatabaseWithPromise(conn, contactInsQry, params);
+          allPromises.push(promise);
+        }
       };
       // for updating existing contact
       const updateContact = contact => {
@@ -314,9 +323,6 @@ router.post("/update_vendor", (req, res) => {
       };
 
       alternateContactInfo.forEach(contact => {
-        if (contact.is_active !== 1) {
-          return;
-        }
         if (contact.operation === "UPDATE" && contact.id && contact.id > 0) {
           updateContact(contact);
         } else {
@@ -325,7 +331,7 @@ router.post("/update_vendor", (req, res) => {
       });
 
       Promise.all(allPromises).then(r => {
-        res.status(200).json({ success: true });
+        res.status(200).json({ success: true, id });
       });
     })
     .catch(err => {

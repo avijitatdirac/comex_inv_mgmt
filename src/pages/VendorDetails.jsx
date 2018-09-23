@@ -7,7 +7,8 @@ import {
   Form,
   Icon,
   Table,
-  Button
+  Button,
+  Message
 } from "semantic-ui-react";
 import { fetchAPI } from "../utility";
 
@@ -30,18 +31,32 @@ class VendorDetails extends Component {
       mainContactName: "",
       mainContactEmail: "",
       mainContactPhone: "",
-      alternateContactInfo: []
+      alternateContactInfo: [],
+      error: "",
+      errorList: [],
+      successMessage: "",
+      isSaving: false,
+      isLoading: false
     };
 
     this.handleChangeName = this.handleChangeName.bind(this);
     this.handleChangePan = this.handleChangePan.bind(this);
     this.handleChangeGst = this.handleChangeGst.bind(this);
     this.handleChangeCin = this.handleChangeCin.bind(this);
+    this.handleChangeAddrLine1 = this.handleChangeAddrLine1.bind(this);
+    this.handleChangeAddrLine2 = this.handleChangeAddrLine2.bind(this);
+    this.handleChangeAddrLine3 = this.handleChangeAddrLine3.bind(this);
+    this.handleChangeCity = this.handleChangeCity.bind(this);
+    this.handleChangeState = this.handleChangeState.bind(this);
+    this.handleChangePin = this.handleChangePin.bind(this);
+    this.changeAltContact = this.changeAltContact.bind(this);
     this.addAlternateContact = this.addAlternateContact.bind(this);
     this.onSave = this.onSave.bind(this);
   }
 
+  // fetch vendor details
   async fetchVendorDetails(vendorId) {
+    this.setState({ isLoading: true });
     try {
       const res = await fetchAPI("/vendor/get_vendor_details", {
         id: vendorId
@@ -59,6 +74,9 @@ class VendorDetails extends Component {
     }
   }
 
+  // fetch vendor details only if vendorId is present in params
+  // NOTE: this component can be loaded in two path
+  // one for creating new vendor, other for modifying existing vendor
   componentDidMount() {
     const vendorId = this.props.match.params.vendorId;
     if (vendorId) {
@@ -74,8 +92,8 @@ class VendorDetails extends Component {
 
   // onchange handler for pan number field
   handleChangePan(e) {
-    const panNumber = e.target.value.trim().toUpperCase();
-    this.setState({ panNumber });
+    const pan = e.target.value.trim().toUpperCase();
+    this.setState({ pan });
   }
 
   // onchange handler for gst field
@@ -139,9 +157,121 @@ class VendorDetails extends Component {
     this.setState({ alternateContactInfo });
   }
 
+  // validate field before saving
+  validateBeforeSave() {
+    let errorList = [];
+
+    // check name as it is required field
+    if (!this.state.name) {
+      errorList.push("Name is Required.");
+    }
+    // check CIN as it is required field
+    if (!this.state.cin) {
+      errorList.push("CIN is Required.");
+    }
+    // check PAN as it is required field
+    if (!this.state.pan) {
+      errorList.push("PAN is Required.");
+    }
+    // check GST as it is required field
+    if (!this.state.gst) {
+      errorList.push("GST is Required.");
+    }
+    // check AddressLine1 as it is required field
+    if (!this.state.addressLine1) {
+      errorList.push("Address Line 1 is Required.");
+    }
+    // check city as it is required field
+    if (!this.state.city) {
+      errorList.push("City is Required.");
+    }
+    // check state as it is required field
+    if (!this.state.state) {
+      errorList.push("State is Required.");
+    }
+    // check pin as it is required field
+    if (!this.state.pin) {
+      errorList.push("PIN is Required.");
+    }
+    const error =
+      errorList.length > 0 ? "Please correct below errors before saving." : "";
+    this.setState({ error, errorList });
+    return error ? true : false;
+  }
+
   // onclick handler for save button
-  onSave() {
-    console.log("onSave");
+  async onSave() {
+    // exit if there is validation error
+    if (this.validateBeforeSave()) {
+      return;
+    }
+
+    const {
+      id,
+      name,
+      pan,
+      gst,
+      cin,
+      addressLine1,
+      addressLine2,
+      addressLine3,
+      city,
+      state,
+      pin,
+      mainContactPersonName,
+      mainContactPersonEmail,
+      mainContactPersonPhone,
+      alternateContactInfo
+    } = this.state;
+    this.setState({ isSaving: true });
+    const payload = {
+      id,
+      name,
+      pan,
+      gst,
+      cin,
+      addressLine1,
+      addressLine2,
+      addressLine3,
+      city,
+      state,
+      pin,
+      mainContactPersonName,
+      mainContactPersonEmail,
+      mainContactPersonPhone,
+      alternateContactInfo
+    };
+    const url = id ? "/vendor/update_vendor" : "/vendor/insert_vendor";
+
+    try {
+      const res = await fetchAPI(url, payload);
+      const data = await res.json();
+      if (data.success) {
+        const __id = data.id;
+        this.setState(
+          {
+            isSaving: false,
+            error: "",
+            errorList: [],
+            successMessage: "Saved Successfully!"
+          },
+          () => {
+            this.fetchVendorDetails(__id);
+            this.props.history.push(`/vendor-details/${__id}`);
+          }
+        );
+      } else {
+        this.setState({
+          isSaving: false,
+          error: "Error while saving!",
+          errorList: [],
+          successMessage: ""
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      this.setState({ isSaving: false });
+    }
   }
 
   // renders the whole form segment
@@ -170,7 +300,7 @@ class VendorDetails extends Component {
             required
             label="PAN"
             placeholder="PAN Number"
-            value={this.state.panNumber || ""}
+            value={this.state.pan || ""}
             onChange={this.handleChangePan}
           />
           <Form.Input
@@ -391,6 +521,24 @@ class VendorDetails extends Component {
     );
   }
 
+  // renders the error message section
+  renderErrorMessage() {
+    if (!this.state.error) {
+      return false;
+    }
+    return (
+      <Message error header={this.state.error} list={this.state.errorList} />
+    );
+  }
+
+  // renders the success message section
+  renderSuccessMessage() {
+    if (!this.state.successMessage) {
+      return false;
+    }
+    return <Message success header={this.state.successMessage} />;
+  }
+
   // renders the Loader overlay
   renderLoader() {
     const { isLoading } = this.state;
@@ -411,6 +559,8 @@ class VendorDetails extends Component {
           <Header as="h1">Vendor Details</Header>
           {this.renderFormSegment()}
           {this.renderButtonSegment()}
+          {this.renderErrorMessage()}
+          {this.renderSuccessMessage()}
         </Dimmer.Dimmable>
       </div>
     );
