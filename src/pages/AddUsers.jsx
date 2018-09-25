@@ -102,14 +102,7 @@ class AddUsers extends Component {
       });
       return false;
     }
-    // check if email is valid
-    if (!validation.validEmail(this.state.email)) {
-      this.setState({
-        isError: true,
-        message: validation.messages().notValidEmail
-      });
-      return false;
-    }
+
     // check if password is empty
     if (!this.state.password) {
       this.setState({
@@ -147,17 +140,18 @@ class AddUsers extends Component {
     }
     this.setState({ dimmerActive: true, isError: false, message: "" });
     try {
-      const res = await fetchAPI("/user/save_user_details", {
+      const params = {
         first_name: this.state.firstName,
         last_name: this.state.lastName,
         email_address: this.state.email,
         password: this.state.password,
-        role_id: this.state.roleId || 0,
-        branch_id: this.state.branchId || 0
-      });
+        role_id: this.state.roleId,
+        branch_id: this.state.branchId
+      };
+      const endpoint = "/user/insert_user_details";
+      const res = await fetchAPI(endpoint, params);
       const data = await res.json();
-      if (data.message === "success") {
-        console.log("user added");
+      if (data.success) {
         this.setState({
           dimmerActive: false,
           isError: false,
@@ -258,16 +252,18 @@ class AddUsers extends Component {
               color="blue"
               onClick={this.handleSubmit}
             >
-              <Icon name="save" />Submit
+              <Icon name="save" />
+              Submit
             </Button>
           </Segment>
           {this.state.isError && this.state.message ? (
-            <Message
-              icon="times"
-              error
-              header="Error"
-              content={this.state.message}
-            />
+            <Message icon negative>
+              <Icon name="times" color="red" />
+              <Message.Content>
+                <Message.Header>Error</Message.Header>
+                {this.state.message}
+              </Message.Content>
+            </Message>
           ) : (
             false
           )}

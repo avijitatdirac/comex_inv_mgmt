@@ -29,6 +29,7 @@ class ListUsers extends Component {
     this.filterByEmail = this.filterByEmail.bind(this);
     this.filterByRole = this.filterByRole.bind(this);
     this.filterByBranch = this.filterByBranch.bind(this);
+    this.openUserDetails = this.openUserDetails.bind(this);
   }
 
   componentDidMount() {
@@ -142,6 +143,12 @@ class ListUsers extends Component {
     this.setState({ userListFiltered });
   }
 
+  openUserDetails(e) {
+    const { param } = e.target.dataset;
+    console.log(param);
+    this.props.history.push(`/userDetails/${param}`);
+  }
+
   render() {
     const { dimmerActive } = this.state;
 
@@ -195,7 +202,7 @@ class ListUsers extends Component {
               </Form.Group>
             </Form>
             <Divider />
-            <Table striped color="blue">
+            <Table striped color="blue" selectable>
               <Table.Header>
                 <Table.Row>
                   <Table.HeaderCell>First Name</Table.HeaderCell>
@@ -207,17 +214,27 @@ class ListUsers extends Component {
               </Table.Header>
               <Table.Body>
                 {this.state.userListFiltered.map(user => (
-                  <Table.Row key={user.email_address}>
-                    <Table.Cell>{user.first_name}</Table.Cell>
-                    <Table.Cell>{user.last_name}</Table.Cell>
-                    <Table.Cell>{user.email_address}</Table.Cell>
-                    <Table.Cell>
+                  <Table.Row
+                    key={user.email_address}
+                    onClick={this.openUserDetails}
+                    data-param={user.email_address}
+                  >
+                    <Table.Cell data-param={user.email_address}>
+                      {user.first_name}
+                    </Table.Cell>
+                    <Table.Cell data-param={user.email_address}>
+                      {user.last_name}
+                    </Table.Cell>
+                    <Table.Cell data-param={user.email_address}>
+                      {user.email_address}
+                    </Table.Cell>
+                    <Table.Cell data-param={user.email_address}>
                       {this.state.userRoles.length > 0 &&
                         this.state.userRoles.filter(
                           role => role.value === user.role_id
                         )[0].text}
                     </Table.Cell>
-                    <Table.Cell>
+                    <Table.Cell data-param={user.email_address}>
                       {this.state.branchOptions.length > 0 &&
                       this.state.branchOptions.filter(
                         branch => branch.value === user.branch_id

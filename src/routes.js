@@ -73,6 +73,12 @@ const ListUsers = Loadable({
   loader: () => import("./pages/ListUsers.jsx"),
   loading: Loading
 });
+
+const UserDetails = Loadable({
+  loader: () => import("./pages/UserDetails.jsx"),
+  loading: Loading
+});
+
 const ListOrgnization = Loadable({
   loader: () => import("./pages/ListOrgnization.jsx"),
   loading: Loading
@@ -133,6 +139,7 @@ const routes = [
     component: AddOrganization
   },
   { path: "/listUsers", name: "ListUsers", component: ListUsers },
+  { path: "/userDetails", name: "UserDetails", component: UserDetails },
   {
     path: "/listOrgnization",
     name: "ListOrgnization",
