@@ -108,10 +108,7 @@ class InsertCustomer extends Component {
       (this.state.customerAddress[l].ContactNumber1.length !== 8 &&
         this.state.customerAddress[l].ContactNumber1.length !== 10) ||
       !/^\d+$/.test(this.state.customerAddress[l].ContactNumber1) ||
-      this.state.customerAddress[l].Email1 === "" ||
-      !/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(
-        this.state.customerAddress[l].Email1
-      )
+      this.state.customerAddress[l].Email1 === ""
     ) {
       //alert("Please Enter relevant Address Data. Press 'Add More' to Check where the Problem is")
       if (this.state.customerAddress[l].Address === "")
@@ -138,12 +135,7 @@ class InsertCustomer extends Component {
       )
         //alert("Please Enter a valid Main Contact Number")
         cnerror = true;
-      if (
-        this.state.customerAddress[l].Email1 === "" ||
-        !/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(
-          this.state.customerAddress[l].Email1
-        )
-      )
+      if (this.state.customerAddress[l].Email1 === "")
         //alert("Please Enter a valid Main Email")
         eerror = true;
       this.setState({
@@ -846,11 +838,13 @@ class InsertCustomer extends Component {
               </Form.Group>
               <Form.Group>
                 <Button onClick={this.handleAddressRemove(idx)}>
-                  <Icon name="minus square outline" />Remove
+                  <Icon name="minus square outline" />
+                  Remove
                 </Button>
                 {idx === this.state.customerAddress.length - 1 ? (
                   <Button onClick={this.handleAddressAdd(idx)}>
-                    <Icon name="plus" />Add Branch
+                    <Icon name="plus" />
+                    Add Branch
                   </Button>
                 ) : (
                   undefined
