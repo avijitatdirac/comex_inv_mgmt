@@ -139,7 +139,7 @@ const routes = [
     component: AddOrganization
   },
   { path: "/listUsers", name: "ListUsers", component: ListUsers },
-  { path: "/userDetails", name: "UserDetails", component: UserDetails },
+  { path: "/userDetails/:email", name: "UserDetails", component: UserDetails },
   {
     path: "/listOrgnization",
     name: "ListOrgnization",

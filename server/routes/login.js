@@ -22,8 +22,7 @@ router.get("/", (req, res) => {
 router.post(CHECK_LOGIN, (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
-  console.log(email);
-  console.log(password);
+  console.log({ email, password });
   const qry = `select 
                   username, 
                   first_name, 
@@ -33,7 +32,8 @@ router.post(CHECK_LOGIN, (req, res) => {
                   user_status, 
                   branch_id 
               from users 
-              where email_address = ? and password = ?`;
+              where email_address = ? and password = ?
+              and user_status = 1`;
   connection.query(qry, [email, password], (err, results) => {
     if (err) {
       console.error(err);

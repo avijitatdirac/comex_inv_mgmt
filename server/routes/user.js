@@ -200,6 +200,7 @@ async function updateUserDetails(req, res) {
                   last_name = ?,
                   role_id = ?,
                   branch_id = ?,
+                  user_status = ?,
                   reason_for_deactivation = ?
                 where email_address = ?`;
 
@@ -208,6 +209,7 @@ async function updateUserDetails(req, res) {
     last_name,
     role_id,
     branch_id,
+    user_status,
     reason_for_deactivation,
     email_address
   } = req.body;
@@ -222,6 +224,7 @@ async function updateUserDetails(req, res) {
     last_name,
     role_id,
     branch_id,
+    user_status,
     reason_for_deactivation,
     email_address
   ];

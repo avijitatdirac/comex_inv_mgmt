@@ -145,8 +145,19 @@ class ListUsers extends Component {
 
   openUserDetails(e) {
     const { param } = e.target.dataset;
-    console.log(param);
     this.props.history.push(`/userDetails/${param}`);
+  }
+
+  showRoleName(roleId) {
+    const filtered = this.state.userRoles.filter(role => role.value === roleId);
+    return filtered.length > 0 ? filtered[0].text : "";
+  }
+
+  showBranchName(branchId) {
+    const filtered = this.state.branchOptions.filter(
+      branch => branch.value === branchId
+    );
+    return filtered.length > 0 ? filtered[0].text : "";
   }
 
   render() {
@@ -210,6 +221,7 @@ class ListUsers extends Component {
                   <Table.HeaderCell>Email</Table.HeaderCell>
                   <Table.HeaderCell>Role</Table.HeaderCell>
                   <Table.HeaderCell>Branch</Table.HeaderCell>
+                  <Table.HeaderCell>Status</Table.HeaderCell>
                 </Table.Row>
               </Table.Header>
               <Table.Body>
@@ -229,20 +241,13 @@ class ListUsers extends Component {
                       {user.email_address}
                     </Table.Cell>
                     <Table.Cell data-param={user.email_address}>
-                      {this.state.userRoles.length > 0 &&
-                        this.state.userRoles.filter(
-                          role => role.value === user.role_id
-                        )[0].text}
+                      {this.showRoleName(user.role_id)}
                     </Table.Cell>
                     <Table.Cell data-param={user.email_address}>
-                      {this.state.branchOptions.length > 0 &&
-                      this.state.branchOptions.filter(
-                        branch => branch.value === user.branch_id
-                      ).length > 0
-                        ? this.state.branchOptions.filter(
-                            branch => branch.value === user.branch_id
-                          )[0].text
-                        : ""}
+                      {this.showBranchName(user.branch_id)}
+                    </Table.Cell>
+                    <Table.Cell data-param={user.email_address}>
+                      {user.user_status ? "Active" : "Inactive"}
                     </Table.Cell>
                   </Table.Row>
                 ))}
