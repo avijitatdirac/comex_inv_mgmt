@@ -154,7 +154,6 @@ router.post("/save_organization", (req, res) => {
 
   Promise.all(allPromises)
     .then(results => {
-      console.log(results);
       res.status(200).json({ success: true });
     })
     .catch(err => {
