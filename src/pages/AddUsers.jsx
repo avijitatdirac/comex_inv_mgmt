@@ -6,7 +6,9 @@ import {
   Segment,
   Dimmer,
   Loader,
-  Message
+  Message,
+  Header,
+  TransitionablePortal
 } from "semantic-ui-react";
 import { validation } from "../Classes";
 import { fetchAPI } from "../utility";
@@ -25,12 +27,15 @@ class AddUsers extends Component {
       branchOptions: [],
       dimmerActive: false,
       isError: false,
-      message: ""
+      message: "",
+      isPortalOpen: false
     };
     this.handleChange = this.handleChange.bind(this);
     this.handleChangeRole = this.handleChangeRole.bind(this);
     this.handleChangeBranch = this.handleChangeBranch.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
+    this.onContinue = this.onContinue.bind(this);
+    this.onCancel = this.onCancel.bind(this);
   }
 
   componentDidMount() {
@@ -132,12 +137,7 @@ class AddUsers extends Component {
     return true;
   }
 
-  async handleSubmit(e) {
-    e.preventDefault();
-    // skip database saving part if any of the field has an error
-    if (!this.validateFields()) {
-      return;
-    }
+  async saveUserData() {
     this.setState({ dimmerActive: true, isError: false, message: "" });
     try {
       const params = {
@@ -172,6 +172,46 @@ class AddUsers extends Component {
         message: validation.messages().addUserFail
       });
     }
+  }
+
+  // onclick handler for submit buttom
+  async handleSubmit(e) {
+    e.preventDefault();
+    // skip database saving part if any of the field has an error
+    if (!this.validateFields()) return;
+
+    // skip saving if allow movement flag validation fails
+    try {
+      const params = {
+        role_id: this.state.roleId,
+        branch_id: this.state.branchId
+      };
+      const res = await fetchAPI("/user/check_allow_movement_for_role", params);
+      const data = await res.json();
+      if (!data.success) {
+        this.setState({ isPortalOpen: true });
+        return;
+      }
+    } catch (err) {
+      console.error(err);
+      return;
+    }
+
+    // save user details if all validation passed
+    this.saveUserData();
+  }
+
+  // onclick handler for Continue button on the portal
+  onContinue(e) {
+    e.preventDefault();
+    this.setState({ isPortalOpen: false });
+    this.saveUserData();
+  }
+
+  // onclick handler for Cancel button on the portal
+  onCancel(e) {
+    e.preventDefault();
+    this.setState({ isPortalOpen: false });
   }
 
   render() {
@@ -247,6 +287,7 @@ class AddUsers extends Component {
                 options={this.state.branchOptions}
               />
             </Form>
+            {this.renderPortal()}
             <Button
               style={{ marginTop: "15px" }}
               color="blue"
@@ -279,6 +320,40 @@ class AddUsers extends Component {
           )}
         </Dimmer.Dimmable>
       </div>
+    );
+  }
+
+  renderPortal() {
+    const styles = {
+      left: "20%",
+      position: "fixed",
+      top: "50%",
+      zIndex: "1000",
+      width: "60vw",
+      paddingBottom: "30px"
+    };
+    const messageStyle = {
+      fontSize: "16px",
+      fontStyle: "italic",
+      color: "#ff5454"
+    };
+    const btnStyle = { marginTop: "10px", marginRight: "10px" };
+    return (
+      <TransitionablePortal open={this.state.isPortalOpen}>
+        <Segment style={styles} inverted>
+          <Header>Attention!</Header>
+          <p style={messageStyle}>
+            Movement of Items is not allowed for this branch.
+          </p>
+          <p style={messageStyle}>Do you want to continue?</p>
+          <Button positive style={btnStyle} onClick={this.onContinue}>
+            Continue
+          </Button>
+          <Button negative onClick={this.onCancel}>
+            Cancel
+          </Button>
+        </Segment>
+      </TransitionablePortal>
     );
   }
 }

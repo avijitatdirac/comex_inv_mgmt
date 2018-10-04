@@ -10,6 +10,7 @@ router.post("/get_user_privileges", getUserPrivileges);
 router.post("/insert_user_details", insertUserDetails);
 router.post("/update_user_details", updateUserDetails);
 router.post("/check_allow_movement_of_items", checkAllowMovement);
+router.post("/check_allow_movement_for_role", checkAllowMovementForRole);
 
 /**
  *
@@ -185,7 +186,7 @@ async function insertUserDetails(req, res) {
 
   try {
     await queryDatabaseWithPromise(conn, qry, params);
-    res.status(200).json({ success: true, insertId });
+    res.status(200).json({ success: true });
   } catch (err) {
     console.error(err);
     res.status(503).json({ error: err });
@@ -260,6 +261,35 @@ async function checkAllowMovement(req, res) {
   } catch (err) {
     console.error(err);
     res.status(503).json({ error: err });
+  }
+}
+
+/**
+ * returns true if selected role doesn't have Saved Challan Drafts privileges
+ * or selected branch has allow_movement_of_items flag set
+ */
+async function checkAllowMovementForRole(req, res) {
+  const { branch_id, role_id } = req.body;
+  console.log({ branch_id, role_id });
+  const roleQry = `select id 
+                      from user_role_privilege_mapping 
+                      where role_id = ? and privilege_id = 8`;
+  const branchQry = `select allow_movement_of_items
+                      from branch
+                      where id = ?`;
+
+  try {
+    const promises = [];
+    promises.push(queryDatabaseWithPromise(conn, roleQry, [role_id]));
+    promises.push(queryDatabaseWithPromise(conn, branchQry, [branch_id]));
+    const [roles, branches] = await Promise.all(promises);
+    const success =
+      roles.length === 0 ||
+      (branches.length > 0 && branches[0].allow_movement_of_items === 1);
+    res.status(200).json({ success });
+  } catch (err) {
+    console.log(err);
+    res.status(503).json({ success: false });
   }
 }
 
