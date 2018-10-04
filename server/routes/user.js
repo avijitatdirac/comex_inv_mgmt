@@ -270,7 +270,6 @@ async function checkAllowMovement(req, res) {
  */
 async function checkAllowMovementForRole(req, res) {
   const { branch_id, role_id } = req.body;
-  console.log({ branch_id, role_id });
   const roleQry = `select id 
                       from user_role_privilege_mapping 
                       where role_id = ? and privilege_id = 8`;

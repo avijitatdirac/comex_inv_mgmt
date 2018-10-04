@@ -90,7 +90,6 @@ class Branch extends Component {
 
   async updateAllowMovement(e, { branchid, checked }) {
     e.stopPropagation();
-    console.log({ branchid, checked });
     const id = branchid;
     const allow_movement_of_items = checked ? 1 : 0;
     const allBranches = this.state.allBranches.slice();
