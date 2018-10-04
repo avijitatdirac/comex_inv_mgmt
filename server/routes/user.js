@@ -9,6 +9,7 @@ router.post("/get_user_details", getUserDetails);
 router.post("/get_user_privileges", getUserPrivileges);
 router.post("/insert_user_details", insertUserDetails);
 router.post("/update_user_details", updateUserDetails);
+router.post("/check_allow_movement_of_items", checkAllowMovement);
 
 /**
  *
@@ -183,7 +184,7 @@ async function insertUserDetails(req, res) {
   ];
 
   try {
-    queryDatabaseWithPromise(conn, qry, params);
+    await queryDatabaseWithPromise(conn, qry, params);
     res.status(200).json({ success: true, insertId });
   } catch (err) {
     console.error(err);
@@ -230,8 +231,32 @@ async function updateUserDetails(req, res) {
   ];
 
   try {
-    queryDatabaseWithPromise(conn, qry, params);
+    await queryDatabaseWithPromise(conn, qry, params);
     res.status(200).json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(503).json({ error: err });
+  }
+}
+
+/**
+ * fetches the allow_movement_of_items flag from branch table
+ * for the logged in user
+ */
+async function checkAllowMovement(req, res) {
+  const email = req.session.email_address;
+  if (!email) return;
+  const qry = `select 
+                  b.allow_movement_of_items 
+                from branch b 
+                join users u on b.id = u.branch_id
+                where u.email_address = ?`;
+  const params = [email];
+  try {
+    const result = await queryDatabaseWithPromise(conn, qry, params);
+    res
+      .status(200)
+      .json({ allow_movement_of_items: result[0].allow_movement_of_items });
   } catch (err) {
     console.error(err);
     res.status(503).json({ error: err });

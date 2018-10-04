@@ -22,9 +22,13 @@ class SideMenu extends React.Component {
   }
 
   async fetchUserPrivileges() {
+    const promises = [];
     try {
-      const res = await fetchAPI("/user/get_user_privileges", {});
-      const data = await res.json();
+      promises.push(fetchAPI("/user/get_user_privileges", {}));
+      promises.push(fetchAPI("/user/check_allow_movement_of_items", {}));
+      const [res1, res2] = await Promise.all(promises);
+      const data = await res1.json();
+      const allowMovement = await res2.json();
 
       /**
        * below code block will show all side menu links in development env,
@@ -57,24 +61,19 @@ class SideMenu extends React.Component {
         });
         return;
       }
-      const isDashboard =
-        findIndex(data.result, { privilege_id: 1 }) > -1 ? true : false;
-      const isAddCustomer =
-        findIndex(data.result, { privilege_id: 2 }) > -1 ? true : false;
-      const isManageCustomer =
-        findIndex(data.result, { privilege_id: 3 }) > -1 ? true : false;
-      const isAddToInventory =
-        findIndex(data.result, { privilege_id: 4 }) > -1 ? true : false;
-      const isOrderAsset =
-        findIndex(data.result, { privilege_id: 5 }) > -1 ? true : false;
-      const isEditAssetType =
-        findIndex(data.result, { privilege_id: 6 }) > -1 ? true : false;
-      const isManageInventory =
-        findIndex(data.result, { privilege_id: 7 }) > -1 ? true : false;
+
+      const { result } = data;
+      const isDashboard = findIndex(result, { privilege_id: 1 }) > -1;
+      const isAddCustomer = findIndex(result, { privilege_id: 2 }) > -1;
+      const isManageCustomer = findIndex(result, { privilege_id: 3 }) > -1;
+      const isAddToInventory = findIndex(result, { privilege_id: 4 }) > -1;
+      const isOrderAsset = findIndex(result, { privilege_id: 5 }) > -1;
+      const isEditAssetType = findIndex(result, { privilege_id: 6 }) > -1;
+      const isManageInventory = findIndex(result, { privilege_id: 7 }) > -1;
       const isSavedChallanDrafts =
-        findIndex(data.result, { privilege_id: 8 }) > -1 ? true : false;
-      const isSettings =
-        findIndex(data.result, { privilege_id: 9 }) > -1 ? true : false;
+        findIndex(result, { privilege_id: 8 }) > -1 &&
+        allowMovement.allow_movement_of_items === 1;
+      const isSettings = findIndex(result, { privilege_id: 9 }) > -1;
       this.setState({
         isDashboard,
         isAddCustomer,
@@ -160,7 +159,8 @@ class SideMenu extends React.Component {
           )}
           {this.state.isSavedChallanDrafts ? (
             <a id="challanDraft" className="menu-item" href="/challanDraft">
-              <i className="copy outline icon" />Saved Challan Drafts
+              <i className="copy outline icon" />
+              Saved Challan Drafts
             </a>
           ) : (
             false
@@ -171,32 +171,38 @@ class SideMenu extends React.Component {
               <ul>
                 <li>
                   <a href="/addUsers">
-                    <i className="angle right icon" />Add User
+                    <i className="angle right icon" />
+                    Add User
                   </a>
                 </li>
                 <li>
                   <a href="/listUsers">
-                    <i className="angle right icon" />List User
+                    <i className="angle right icon" />
+                    List User
                   </a>
                 </li>
                 <li>
                   <a href="/addOrganization">
-                    <i className="angle right icon" />Organization
+                    <i className="angle right icon" />
+                    Organization
                   </a>
                 </li>
                 <li>
                   <a href="/branch">
-                    <i className="angle right icon" />Branch
+                    <i className="angle right icon" />
+                    Branch
                   </a>
                 </li>
                 <li>
                   <a href="/roles">
-                    <i className="angle right icon" />Roles and Privileges
+                    <i className="angle right icon" />
+                    Roles and Privileges
                   </a>
                 </li>
                 <li>
                   <a href="/vendors">
-                    <i className="angle right icon" />Manage Vendor
+                    <i className="angle right icon" />
+                    Manage Vendor
                   </a>
                 </li>
               </ul>
