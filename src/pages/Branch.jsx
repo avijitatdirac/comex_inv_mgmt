@@ -7,7 +7,8 @@ import {
   Button,
   Divider,
   Input,
-  Icon
+  Icon,
+  Checkbox
 } from "semantic-ui-react";
 import { findIndex } from "lodash";
 import { fetchAPI } from "../utility";
@@ -32,6 +33,7 @@ class Branch extends Component {
     this.onDelete = this.onDelete.bind(this);
     this.updateBranch = this.updateBranch.bind(this);
     this.changeBranchName = this.changeBranchName.bind(this);
+    this.updateAllowMovement = this.updateAllowMovement.bind(this);
   }
 
   /**
@@ -84,6 +86,34 @@ class Branch extends Component {
   // onclick handler for cancel button
   onCancel() {
     this.setState({ newBranch: "", isAddButtonClicked: false });
+  }
+
+  async updateAllowMovement(e, { branchid, checked }) {
+    e.stopPropagation();
+    console.log({ branchid, checked });
+    const id = branchid;
+    const allow_movement_of_items = checked ? 1 : 0;
+    const allBranches = this.state.allBranches.slice();
+    const idx = findIndex(allBranches, { id });
+    if (idx < 0) return;
+    allBranches[idx].saving = true;
+    this.setState({ allBranches });
+
+    try {
+      const params = { id, allow_movement_of_items };
+      const res = await fetchAPI("/branch/update_allow_of_movement", params);
+      const data = await res.json();
+      if (data.success) {
+        allBranches[idx].allow_movement_of_items = allow_movement_of_items;
+        allBranches[idx].saving = false;
+      } else {
+        allBranches[idx].saving = false;
+      }
+    } catch (err) {
+      console.error(err);
+      allBranches[idx].saving = false;
+    }
+    this.setState({ allBranches });
   }
 
   // onclick handler for save button for add new branch
@@ -182,6 +212,7 @@ class Branch extends Component {
         <Table.Row>
           <Table.HeaderCell style={{ width: "100px" }}>Sl No</Table.HeaderCell>
           <Table.HeaderCell>Branch Name</Table.HeaderCell>
+          <Table.HeaderCell>Allow Movement Of Items</Table.HeaderCell>
           <Table.HeaderCell />
         </Table.Row>
       </Table.Header>
@@ -219,8 +250,22 @@ class Branch extends Component {
             branch.name
           )}
         </Table.Cell>
+        <Table.Cell>{this.renderAllowMovementCheckbox(branch)}</Table.Cell>
         <Table.Cell>{this.renderRowIcon(branch)}</Table.Cell>
       </Table.Row>
+    );
+  }
+
+  // renders the Allow Movement of Items checkbox
+  renderAllowMovementCheckbox(branch) {
+    return (
+      <Checkbox
+        toggle
+        branchid={branch.id}
+        disabled={branch.edit || branch.saving}
+        checked={branch.allow_movement_of_items === 1}
+        onChange={this.updateAllowMovement}
+      />
     );
   }
 

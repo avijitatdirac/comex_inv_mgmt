@@ -7,7 +7,7 @@ const { queryDatabaseWithPromise } = require("./utility");
  * API endpoint to populate the branch dropdown
  */
 router.post("/get_branch_names", (req, res) => {
-  const qry = `select id, name
+  const qry = `select id, name, allow_movement_of_items
                   from branch
                   where is_active = 1`;
   queryDatabaseWithPromise(conn, qry, [])
@@ -26,6 +26,7 @@ router.post("/get_branch_names", (req, res) => {
 router.post("/get_branches", (req, res) => {
   const qry = `select id, 
                       name, 
+                      allow_movement_of_items,
                       is_active 
                 from branch 
                 where is_active = 1`;
@@ -82,6 +83,26 @@ router.post("/update_branch", (req, res) => {
 
   const { id, name } = req.body;
   queryDatabaseWithPromise(conn, qry, [name, id])
+    .then(result => {
+      res.status(200).json({ success: true });
+    })
+    .catch(err => {
+      console.error(err);
+      res.status(503).json({ error: err, success: false });
+    });
+});
+
+/**
+ * update allow_movement_of_items
+ */
+router.post("/update_allow_of_movement", (req, res) => {
+  const qry = `update branch 
+                  set allow_movement_of_items = ?
+                where id = ?`;
+
+  const { id, allow_movement_of_items } = req.body;
+  const params = [allow_movement_of_items, id];
+  queryDatabaseWithPromise(conn, qry, params)
     .then(result => {
       res.status(200).json({ success: true });
     })
