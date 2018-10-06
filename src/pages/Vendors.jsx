@@ -118,7 +118,7 @@ class Vendors extends Component {
       <div style={{ minHeight: "100vh" }}>
         <Dimmer.Dimmable
           as={Segment}
-          dimmed={this.state.dimmerActive}
+          dimmed={this.state.isLoading}
           color="green"
         >
           <Dimmer active={this.state.isLoading} inverted>

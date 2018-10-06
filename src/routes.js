@@ -89,6 +89,11 @@ const Branch = Loadable({
   loading: Loading
 });
 
+const BranchDetails = Loadable({
+  loader: () => import("./pages/BranchDetails"),
+  loading: Loading
+});
+
 const Roles = Loadable({
   loader: () => import("./pages/Roles"),
   loading: Loading
@@ -146,6 +151,11 @@ const routes = [
     component: ListOrgnization
   },
   { path: "/branch", name: "Branch", component: Branch },
+  {
+    path: "/branch-details/:branchId?",
+    name: "BranchDetails",
+    component: BranchDetails
+  },
   { path: "/roles", name: "Roles", component: Roles },
   { path: "/vendors/", name: "Vendors", component: Vendors },
   {
