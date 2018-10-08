@@ -263,10 +263,7 @@ class AddAddress extends Component {
       (this.state.customerAddress[idx].ContactNumber1.length !== 8 &&
         this.state.customerAddress[idx].ContactNumber1.length !== 10) ||
       !/^\d+$/.test(this.state.customerAddress[idx].ContactNumber1) ||
-      this.state.customerAddress[idx].Email1 === "" ||
-      !/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(
-        this.state.customerAddress[idx].Email1
-      )
+      this.state.customerAddress[idx].Email1 === ""
     ) {
       if (this.state.customerAddress[idx].Address === "")
         // alert("Please Enter valid Address")
@@ -292,12 +289,7 @@ class AddAddress extends Component {
       )
         //alert("Please Enter a valid Main Contact Number")
         cnerror = true;
-      if (
-        this.state.customerAddress[idx].Email1 === "" ||
-        !/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(
-          this.state.customerAddress[idx].Email1
-        )
-      )
+      if (this.state.customerAddress[idx].Email1 === "")
         //alert("Please Enter a valid Main Email")
         eerror = true;
     }
@@ -635,11 +627,13 @@ class AddAddress extends Component {
               </Form.Group>
               <Form.Group>
                 <Button onClick={this.handleAddressRemove(idx)}>
-                  <Icon name="minus square outline" />Remove
+                  <Icon name="minus square outline" />
+                  Remove
                 </Button>
                 {idx === this.state.customerAddress.length - 1 ? (
                   <Button onClick={this.handleAddressAdd(idx)}>
-                    <Icon name="plus" />Add More
+                    <Icon name="plus" />
+                    Add More
                   </Button>
                 ) : (
                   undefined
@@ -687,7 +681,8 @@ class AddAddress extends Component {
       <div className="page">
         <Segment>
           <Label as="a" color="violet">
-            <Icon name="user" />Select Customer
+            <Icon name="user" />
+            Select Customer
           </Label>
           <br />
           <Form.Dropdown
