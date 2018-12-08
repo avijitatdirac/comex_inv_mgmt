@@ -41,6 +41,7 @@ const user = require("./routes/user");
 const organization = require("./routes/organization");
 const roles = require("./routes/roles");
 const vendor = require("./routes/vendor");
+const organizations = require("./routes/organizations");
 
 /**
  * serve all static files without any session authentication
@@ -56,7 +57,7 @@ app.use("/login", login);
 /**
  * authenticate all request to check if user has valid session
  */
-app.use(auth);
+// app.use(auth);
 
 /**
  * all router added after main authentication module
@@ -73,6 +74,7 @@ app.use("/user", user);
 app.use("/organization", organization);
 app.use("/roles", roles);
 app.use("/vendor", vendor);
+app.use("/organizations", organizations);
 
 /**
  *

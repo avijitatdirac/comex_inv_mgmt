@@ -115,15 +115,15 @@ class SideMenu extends React.Component {
           ) : (
             false
           )}
-          {this.state.isAddCustomer ? (
+          {/* {this.state.isAddCustomer ? (
             <a id="insertCustomer" className="menu-item" href="/insertCustomer">
               <i className="user plus icon" /> Add Customer
             </a>
           ) : (
             false
-          )}
+          )} */}
           {this.state.isManageCustomer ? (
-            <a id="manageCustomer" className="menu-item" href="/manageCustomer">
+            <a id="manageCustomer" className="menu-item" href="/customers">
               <i className="users icon" /> Manage Customer
             </a>
           ) : (

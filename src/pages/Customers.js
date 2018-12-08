@@ -9,7 +9,7 @@ import {
   Icon
 } from "semantic-ui-react";
 
-class ManageCustomer extends Component {
+class Customers extends Component {
   constructor(props) {
     super(props);
 
@@ -39,7 +39,7 @@ class ManageCustomer extends Component {
 
   onAddCustomer() {
     console.log("onAddCustomer");
-    this.props.history.push("/insertCustomer");
+    this.props.history.push("/customer-details");
   }
 
   renderSearchByForm() {
@@ -123,4 +123,4 @@ class ManageCustomer extends Component {
   }
 }
 
-export default ManageCustomer;
+export default Customers;

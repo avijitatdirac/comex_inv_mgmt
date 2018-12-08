@@ -109,6 +109,16 @@ const VendorDetails = Loadable({
   loading: Loading
 });
 
+const Customers = Loadable({
+  loader: () => import("./pages/Customers"),
+  loading: Loading
+});
+
+const CustomerDetails = Loadable({
+  loader: () => import("./pages/CustomerDetails"),
+  loading: Loading
+});
+
 const routes = [
   { path: "/", exact: true, name: "dashboard", component: DefaultLayout },
   { path: "/addAsset", name: "AddAsset", component: AddAsset },
@@ -162,6 +172,12 @@ const routes = [
     path: "/vendor-details/:vendorId?",
     name: "VendorDetails",
     component: VendorDetails
+  },
+  { path: "/customers/", name: "Customers", component: Customers },
+  {
+    path: "/customer-details/:customerId?",
+    name: "CustomerDetails",
+    component: CustomerDetails
   }
 ];
 
