@@ -57,7 +57,7 @@ app.use("/login", login);
 /**
  * authenticate all request to check if user has valid session
  */
-// app.use(auth);
+app.use(auth);
 
 /**
  * all router added after main authentication module

@@ -25,6 +25,7 @@ const ORG_QRY = `select id,
                     state,
                     pin,
                     allow_movement_of_items as allowMovementOfItems,
+                    is_sez as isSez,
                     ifnull(parent_id, -1) as parentCustomerId
                 from organizations
                 where id = ?`;
@@ -70,7 +71,10 @@ router.post("/get_all_organizations", (req, res) => {
 
 router.post("/get_all_parents", (req, res) => {
   const qry = `select id,
-                        name
+                        name,
+                        pan,
+                        cin,
+                        gst
                 from organizations
                 where parent_id is null or parent_id = 0`;
   queryDatabaseWithPromise(conn, qry, [])
@@ -157,6 +161,22 @@ router.post("/save_organizations", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(503).json({ success: false, error: err });
+  }
+});
+
+router.post("/get_child_count", async (req, res) => {
+  const qry = `select count(*) as count from organizations where parent_id = ?`;
+  const { id } = req.body;
+  if (!id) {
+    res.status(503).json({ error: "id is required" });
+    return;
+  }
+  try {
+    const result = await queryDatabaseWithPromise(conn, qry, [id]);
+    res.status(200).json({ ...result[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(503).json({ error: err });
   }
 });
 

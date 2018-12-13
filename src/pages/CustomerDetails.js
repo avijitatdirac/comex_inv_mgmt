@@ -9,8 +9,11 @@ import {
   Dropdown,
   Radio,
   Table,
-  Message
+  Message,
+  Dimmer,
+  Loader
 } from "semantic-ui-react";
+import { findIndex } from "lodash";
 import { notify } from "../Classes";
 import { fetchAPI } from "../utility";
 
@@ -19,6 +22,7 @@ class CustomerDetails extends Component {
     super(props);
 
     this.state = {
+      orgType: "CUSTOMER",
       isSaving: false,
       hasParentCustomer: false,
       parentCustomerList: [],
@@ -50,22 +54,120 @@ class CustomerDetails extends Component {
     this.changeMainContact = this.changeMainContact.bind(this);
     this.changeContactField = this.changeContactField.bind(this);
     this.onSave = this.onSave.bind(this);
+    this.onAddBranch = this.onAddBranch.bind(this);
     this.onDelete = this.onDelete.bind(this);
   }
 
   componentDidMount() {
+    console.log("componentDidMount");
     this.fetchParentCustomerList();
+    this.fetchCustomerDetails();
   }
 
-  fetchParentCustomerList() {
-    console.log("fetchParentCustomerList");
+  componentDidUpdate(prevProps, prevState) {
+    console.log("componentDidUpdate");
+    if (
+      prevProps.match.params.customerId !==
+        this.props.match.params.customerId &&
+      this.props.location.parentId &&
+      this.props.location.isChildBranch
+    ) {
+      console.log("componentDidUpdate, setState");
+      const id = null;
+      const hasParentCustomer = true;
+      const parentCustomerId = Number(this.props.location.parentId);
+      const { name, pan, cin, gst, gstRegistered } = prevState;
+      const isSez = false;
+      const addrLine1 = "";
+      const addrLine2 = "";
+      const addrLine3 = "";
+      const city = "";
+      const state = "";
+      const pin = "";
+      const contacts = [];
+      const error = "";
+      const errorList = [];
+      this.setState({
+        id,
+        hasParentCustomer,
+        parentCustomerId,
+        name,
+        pan,
+        cin,
+        gst,
+        gstRegistered,
+        addrLine1,
+        addrLine2,
+        addrLine3,
+        city,
+        state,
+        pin,
+        isSez,
+        contacts,
+        error,
+        errorList
+      });
+    } else if (
+      this.props.match.params.customerId &&
+      this.props.match.params.customerId !== prevProps.match.params.customerId
+    ) {
+      this.fetchCustomerDetails();
+    }
+  }
+
+  async fetchParentCustomerList() {
+    const url = "/organizations/get_all_parents";
     const parentCustomerList = [];
     parentCustomerList.push({
       key: -1,
       value: -1,
-      text: "Select..."
+      text: "Select...",
+      pan: "",
+      cin: "",
+      gst: ""
     });
+    try {
+      const res = await fetchAPI(url, {});
+      const { data } = await res.json();
+      if (data && data.length > 0) {
+        for (const d of data) {
+          parentCustomerList.push({
+            key: d.id,
+            value: d.id,
+            text: d.name,
+            pan: d.pan,
+            cin: d.cin,
+            gst: d.gst
+          });
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    }
     this.setState({ parentCustomerList });
+  }
+
+  async fetchCustomerDetails() {
+    const customerId = this.props.match.params.customerId;
+    if (!customerId) {
+      return;
+    }
+    this.setState({ loading: true });
+    try {
+      const url = `/organizations/get_organization_details`;
+      const res = await fetchAPI(url, { id: customerId });
+      const { data } = await res.json();
+      this.setState({
+        ...data,
+        hasParentCustomer: data.parentCustomerId > 0,
+        gstRegistered: data.gstRegistered ? true : false,
+        isSez: data.isSez ? true : false
+      });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      this.setState({ loading: false });
+    }
   }
 
   changeHasParentCustomer(e, { checked }) {
@@ -73,7 +175,13 @@ class CustomerDetails extends Component {
   }
 
   changeParentCustomer(e, { value }) {
-    this.setState({ parentCustomerId: value });
+    const parentCustomerId = value;
+    const idx = findIndex(this.state.parentCustomerList, { key: value });
+    if (idx > -1 && parentCustomerId > -1) {
+      const { pan, gst, cin, text } = this.state.parentCustomerList[idx];
+      this.setState({ pan, cin, gst, name: text });
+    }
+    this.setState({ parentCustomerId });
   }
 
   changeGstRegistered(e, { checked }) {
@@ -186,16 +294,31 @@ class CustomerDetails extends Component {
     if (!this.state.name) {
       errorList.push("Name is Required.");
     }
+
+    if (this.state.cin && this.state.cin.length < 21) {
+      errorList.push("CIN should be of 21 digits");
+    }
+
     // check PAN as it is required field
     if (!this.state.pan) {
       errorList.push("PAN is Required.");
     }
+    if (this.state.pan && this.state.pan.length < 10) {
+      errorList.push("PAN should be of 10 digits");
+    }
     // check GST as it is required field
-    if (!this.state.gst) {
+    if (this.state.gstRegistered && !this.state.gst) {
       errorList.push("GST is Required.");
     }
+    if (
+      this.state.gstRegistered &&
+      this.state.gst &&
+      this.state.gst.length < 15
+    ) {
+      errorList.push("GST should be of 15 digits");
+    }
     // check AddressLine1 as it is required field
-    if (!this.state.addressLine1) {
+    if (!this.state.addrLine1) {
       errorList.push("Address Line 1 is Required.");
     }
     // check city as it is required field
@@ -209,6 +332,9 @@ class CustomerDetails extends Component {
     // check pin as it is required field
     if (!this.state.pin) {
       errorList.push("PIN is Required.");
+    }
+    if (this.state.pin && this.state.pin.length < 6) {
+      errorList.push("PIN should be of 6 digits");
     }
 
     let hasMainContact = false;
@@ -233,10 +359,81 @@ class CustomerDetails extends Component {
     if (this.validateBeforeSave()) {
       return;
     }
+
+    const url = "/organizations/save_organizations";
+    this.setState({ isSaving: true });
+    try {
+      const res = await fetchAPI(url, { ...this.state });
+      const { success, id } = await res.json();
+      if (success) {
+        const pathname = "/customer-details/" + id;
+        this.props.history.push(pathname);
+      } else {
+        notify.error("An error occurred");
+      }
+      this.setState({ isSaving: false });
+      notify.success("Successfully updated");
+    } catch (err) {
+      console.error(err);
+      this.setState({ isSaving: false });
+      notify.error("An error occurred!");
+    }
+  }
+
+  onAddBranch() {
+    const pathname = "/customer-details";
+    const parentId = this.props.match.params.customerId;
+    const isChildBranch = true;
+    this.props.history.push({ pathname, parentId, isChildBranch });
   }
 
   async onDelete() {
     console.log("onDelete");
+
+    const url = "/organizations/delete_organization";
+    const customerId = this.props.match.params.customerId;
+    if (!customerId) {
+      return;
+    }
+    try {
+      this.setState({ isSaving: true });
+      const countRes = await fetchAPI("/organizations/get_child_count", {
+        id: customerId
+      });
+      const { count } = await countRes.json();
+      if (count > 0) {
+        console.log({ count });
+        const isSaving = false;
+        const error = "Error!";
+        const errorList = [
+          "Cannot delete customer with one or more branch present."
+        ];
+        this.setState({ error, errorList, isSaving });
+        return;
+      }
+
+      const res = await fetchAPI(url, { id: customerId });
+      const { success } = await res.json();
+      if (success) {
+        notify.success("Customer successfully deleted");
+        this.props.history.push("/customers");
+      } else {
+        notify.error("An error occurred while saving");
+      }
+    } catch (err) {
+      console.error(err);
+      notify.error("An error occurred while saving");
+    } finally {
+      this.setState({ isSaving: false });
+    }
+  }
+
+  disableParentCustomerSelection() {
+    return (
+      (this.props.match.params.customerId &&
+        Number(this.props.match.params.customerId) > 0) ||
+      this.props.location.isChildBranch
+    );
   }
 
   renderParentCustomerDropDown() {
@@ -248,18 +445,20 @@ class CustomerDetails extends Component {
           </Form.Field>
           <Radio
             toggle
+            disabled={this.disableParentCustomerSelection()}
             checked={this.state.hasParentCustomer}
             onChange={this.changeHasParentCustomer}
           />
           {this.state.hasParentCustomer && (
             <React.Fragment>
               <Form.Field required style={{ marginLeft: "10px" }}>
-                <label>Choose Parent Customer:</label>
+                <label>Parent Customer:</label>
               </Form.Field>
               <Form.Field>
                 <Dropdown
                   search
                   selection
+                  disabled={this.disableParentCustomerSelection()}
                   value={this.state.parentCustomerId}
                   onChange={this.changeParentCustomer}
                   options={this.state.parentCustomerList}
@@ -290,6 +489,7 @@ class CustomerDetails extends Component {
             <Form.Input
               label="PAN"
               required
+              disabled={this.state.parentCustomerId > 0}
               value={this.state.pan}
               placeholder="Customer PAN"
               onChange={this.changeField("pan")}
@@ -297,6 +497,7 @@ class CustomerDetails extends Component {
             <Form.Input
               label="CIN"
               value={this.state.cin}
+              disabled={this.state.parentCustomerId > 0}
               placeholder="Customer CIN"
               onChange={this.changeField("cin")}
             />
@@ -472,7 +673,7 @@ class CustomerDetails extends Component {
                   {contact.isActive === 1 ? (
                     <Form.Input
                       fluid
-                      placeholder="Contact Phone"
+                      placeholder="Contact Role"
                       value={contact.role || ""}
                       onChange={this.changeContactField(contact.id, "role")}
                     />
@@ -528,15 +729,29 @@ class CustomerDetails extends Component {
           <Icon name="save" />
           Save Customer Details
         </Button>
-        <Button
-          negative
-          loading={this.state.isSaving}
-          disabled={this.state.isSaving}
-          onClick={this.onDelete}
-        >
-          <Icon name="delete" />
-          Delect Customer
-        </Button>
+        {this.props.match.params.customerId &&
+          this.state.parentCustomerId === -1 && (
+            <Button
+              primary
+              loading={this.state.isSaving}
+              disabled={this.state.isSaving}
+              onClick={this.onAddBranch}
+            >
+              <Icon name="add" />
+              Add New Branch
+            </Button>
+          )}
+        {this.props.match.params.customerId && (
+          <Button
+            negative
+            loading={this.state.isSaving}
+            disabled={this.state.isSaving}
+            onClick={this.onDelete}
+          >
+            <Icon name="delete" />
+            Delect Customer
+          </Button>
+        )}
       </React.Fragment>
     );
   }
@@ -551,21 +766,37 @@ class CustomerDetails extends Component {
     );
   }
 
+  // renders the Loader overlay
+  renderLoader() {
+    const { loading } = this.state;
+    return (
+      <Dimmer active={loading} inverted>
+        <Loader>Fetching Customer Details...</Loader>
+      </Dimmer>
+    );
+  }
+
   render() {
     return (
-      <div>
-        <Header as="h1" textAlign="center" color="orange">
-          Add New Customer
-        </Header>
-        <Segment color="teal">
-          {this.renderParentCustomerDropDown()}
-          <Divider />
-          {this.renderNameSection()}
-          {this.renderAddressSegment()}
-          {this.renderContactSegment()}
-          {this.renderButtonSegment()}
-        </Segment>
-        {this.renderErrorMessage()}
+      <div className="page">
+        <Dimmer.Dimmable as={Segment} dimmed={this.state.loading}>
+          {this.renderLoader()}
+
+          <Header as="h1" textAlign="center" color="orange">
+            {this.props.match.params.customerId
+              ? "Customer Details"
+              : "Add New Customer"}
+          </Header>
+          <Segment color="teal">
+            {this.renderParentCustomerDropDown()}
+            <Divider />
+            {this.renderNameSection()}
+            {this.renderAddressSegment()}
+            {this.renderContactSegment()}
+            {this.renderButtonSegment()}
+          </Segment>
+          {this.renderErrorMessage()}
+        </Dimmer.Dimmable>
       </div>
     );
   }
