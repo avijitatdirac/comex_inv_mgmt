@@ -11,7 +11,8 @@ import {
   Table,
   Message,
   Dimmer,
-  Loader
+  Loader,
+  Modal
 } from "semantic-ui-react";
 import { findIndex } from "lodash";
 import { notify } from "../Classes";
@@ -42,7 +43,8 @@ class CustomerDetails extends Component {
       pin: "",
       contacts: [],
       error: "",
-      errorList: []
+      errorList: [],
+      isDeleteWarningOpen: false
     };
 
     this.changeHasParentCustomer = this.changeHasParentCustomer.bind(this);
@@ -56,6 +58,8 @@ class CustomerDetails extends Component {
     this.onSave = this.onSave.bind(this);
     this.onAddBranch = this.onAddBranch.bind(this);
     this.onDelete = this.onDelete.bind(this);
+    this.closeDeleteWarning = this.closeDeleteWarning.bind(this);
+    this.deleteCustomer = this.deleteCustomer.bind(this);
   }
 
   componentDidMount() {
@@ -171,7 +175,8 @@ class CustomerDetails extends Component {
   }
 
   changeHasParentCustomer(e, { checked }) {
-    this.setState({ hasParentCustomer: checked });
+    const parentCustomerId = checked ? this.state.parentCustomerId : -1;
+    this.setState({ hasParentCustomer: checked, parentCustomerId });
   }
 
   changeParentCustomer(e, { value }) {
@@ -180,6 +185,9 @@ class CustomerDetails extends Component {
     if (idx > -1 && parentCustomerId > -1) {
       const { pan, gst, cin, text } = this.state.parentCustomerList[idx];
       this.setState({ pan, cin, gst, name: text });
+    }
+    if (parentCustomerId === -1) {
+      this.setState({ pan: "", cin: "", gst: "", name: "" });
     }
     this.setState({ parentCustomerId });
   }
@@ -389,14 +397,25 @@ class CustomerDetails extends Component {
 
   async onDelete() {
     console.log("onDelete");
+    this.setState({ isDeleteWarningOpen: true });
+  }
 
+  // close the delete warning modal window
+  closeDeleteWarning() {
+    console.log("closeDeleteWarning");
+    this.setState({ isDeleteWarningOpen: false });
+  }
+
+  // call backend API and delete customer from database
+  async deleteCustomer() {
+    console.log("deleteCustomer");
     const url = "/organizations/delete_organization";
     const customerId = this.props.match.params.customerId;
     if (!customerId) {
       return;
     }
     try {
-      this.setState({ isSaving: true });
+      this.setState({ isSaving: true, isDeleteWarningOpen: false });
       const countRes = await fetchAPI("/organizations/get_child_count", {
         id: customerId
       });
@@ -424,7 +443,7 @@ class CustomerDetails extends Component {
       console.error(err);
       notify.error("An error occurred while saving");
     } finally {
-      this.setState({ isSaving: false });
+      this.setState({ isSaving: false, isDeleteWarningOpen: false });
     }
   }
 
@@ -776,6 +795,39 @@ class CustomerDetails extends Component {
     );
   }
 
+  // render modal window to show delete warning message
+  renderDeleteWarning() {
+    return (
+      <Modal
+        className="scrolling"
+        style={{ height: "220px" }}
+        open={this.state.isDeleteWarningOpen}
+        onClose={this.closeDeleteWarning}
+      >
+        <Modal.Header>Delete Customer</Modal.Header>
+        <Modal.Content>
+          <p>
+            Please be advised deleting customer will permanently remove customer
+            information from the database.
+          </p>
+          <p>Are you sure want to delete this customer?</p>
+        </Modal.Content>
+        <Modal.Actions>
+          <Button negative onClick={this.closeDeleteWarning}>
+            No
+          </Button>
+          <Button
+            positive
+            icon="checkmark"
+            labelPosition="right"
+            content="Yes"
+            onClick={this.deleteCustomer}
+          />
+        </Modal.Actions>
+      </Modal>
+    );
+  }
+
   render() {
     return (
       <div className="page">
@@ -795,6 +847,7 @@ class CustomerDetails extends Component {
             {this.renderContactSegment()}
             {this.renderButtonSegment()}
           </Segment>
+          {this.renderDeleteWarning()}
           {this.renderErrorMessage()}
         </Dimmer.Dimmable>
       </div>
