@@ -1,7 +1,12 @@
 
 # Ignore bundler config.
 /node_modules
+node_modules
 
 # Ignore the default SQLite database.
 
-
+.DS_Store
+/build
+build
+*.pem
+.vscode

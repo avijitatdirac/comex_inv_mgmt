@@ -22,9 +22,6 @@
   background-color: var(--primarycolor);
 }
 
-
-
-
 /* .ui.fixed.sticky + p {
   margin-top: 39px;
 } */
@@ -35,7 +32,7 @@
   color: gray;
   width: auto;
   height: auto;
-  
+
   margin-left: auto;
   margin-right: auto;
 }
@@ -45,7 +42,7 @@ h1 {
   color: teal;
   width: auto;
   height: auto;
-  
+
   margin-left: auto;
   margin-right: auto;
 }
@@ -92,6 +89,7 @@ h1 {
 .page {
   width: 80%;
   margin: 0 auto;
+  min-height: calc(100vh - 250px);
 }
 /* .mainDiv {
   border-block-start: 20px;
@@ -100,6 +98,6 @@ h1 {
   margin-left: auto;
   width: 90%;
 } */
-.opacity{
+.opacity {
   opacity: 67.45;
 }

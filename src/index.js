@@ -1,55 +1,15 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import './index.css';
-import App from './App';
-import Login from './Login';
-// import registerServiceWorker from './registerServiceWorker';
-import { BrowserRouter } from 'react-router-dom';
-import { history } from './_helpers';
-const fakeAuth = {
-	isAuthenticated: false,
-	authenticate(cb) {
-		this.isAuthenticated = true;
-		setTimeout(cb, 100); // fake async
-	},
-	signout(cb) {
-		this.isAuthenticated = false;
-		setTimeout(cb, 100);
-	},
-};
+import React from "react";
+import ReactDOM from "react-dom";
+import "./index.css";
+import App from "./App";
+import { BrowserRouter } from "react-router-dom";
 
-function LandingPage(props) {
-	const isLoggedIn = props.isLoggedIn;
-	if (isLoggedIn) {
-		return <App />;
-	}
-	return <Login />;
-}
-
-/*ReactDOM.render(
-	// Try changing to isLoggedIn={true}:
-	<LandingPage isLoggedIn={false} />,
-	document.getElementById('root')
-);*/
-
-ReactDOM.render(
-	<BrowserRouter>
-		<App />
-	</BrowserRouter>,
-	document.getElementById('root')
+const el = (
+  <BrowserRouter>
+    <App />
+  </BrowserRouter>
 );
-// registerServiceWorker();
-/*(function(seconds) {
-    var refresh,       
-        intvrefresh = function() {
-			
-            clearInterval(refresh);
-            refresh = setTimeout(function() {
-              history.push('/login')
-            }, seconds * 1000);
-        };
+const target = document.getElementById("root");
+ReactDOM.render(el, target);
 
-    window.document.addEventListener('keypress click', function() { intvrefresh() });
-    intvrefresh();
-
-}(30));*/
+// "proxy": "https://polar-dusk-36385.herokuapp.com",
